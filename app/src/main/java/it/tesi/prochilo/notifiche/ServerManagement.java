@@ -13,9 +13,11 @@ public class ServerManagement {
         GET, POST, PUT, DELETE;
     }
 
-    private String url;
+    private String url = null;
     private HttpURLConnection mHttpURLConnection;
     private URL mUrl = null;
+    private InputStream mInputStream;
+    private OutputStream mOutputStream;
 
     public ServerManagement(String url) {
         this.url = url;
@@ -26,18 +28,17 @@ public class ServerManagement {
         }
     }
 
-    public List<String> getTopic() throws IOException {
+    public List<String> getTopics() throws IOException {
         try {
             mHttpURLConnection = (HttpURLConnection) mUrl.openConnection();
             mHttpURLConnection.setRequestMethod(HttpMethod.GET.name());
             //DA MODIFICARE
             mHttpURLConnection.addRequestProperty("content_type", "application.json");
             final int httpRespondeCode = mHttpURLConnection.getResponseCode();
-            InputStream inputStream;
             if (true) { //VERIFICA IL NUMERO
-                inputStream = mHttpURLConnection.getInputStream();
+                mInputStream = mHttpURLConnection.getInputStream();
             } else {
-                inputStream = mHttpURLConnection.getErrorStream();
+                mInputStream = mHttpURLConnection.getErrorStream();
             }
             final String httpResponseMessage = mHttpURLConnection.getResponseMessage();
             //Leggi il contenuto tramite l'inputStream
@@ -54,19 +55,18 @@ public class ServerManagement {
         //DA IMPLEMENTARE CON PUT
     }
 
-    public void addMoreTopic(String listaTopic) {
+    public void addTopics(String listaTopic) {
         try {
             mHttpURLConnection = (HttpURLConnection) mUrl.openConnection();
             mHttpURLConnection.setRequestMethod(HttpMethod.POST.name());
             mHttpURLConnection.setDoInput(true);
             mHttpURLConnection.setDoOutput(true);
-            final OutputStream outputStream = mHttpURLConnection.getOutputStream();
-            outputStream.write(listaTopic.getBytes("UTF-8"));
+            mOutputStream = mHttpURLConnection.getOutputStream();
+            mOutputStream.write(listaTopic.getBytes("UTF-8"));
             //DA MODIFICARE
             mHttpURLConnection.addRequestProperty("content_type", "json");
             final int httpResponse = mHttpURLConnection.getResponseCode();
             //CONTROLLO RISPOSTA
-            InputStream inputStream = mHttpURLConnection.getInputStream();
 
         } catch (IOException ioe) {
 

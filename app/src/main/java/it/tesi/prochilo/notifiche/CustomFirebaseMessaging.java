@@ -8,22 +8,22 @@ public class CustomFirebaseMessaging {
     private FirebaseMessaging messaging;
 
 
-    public CustomFirebaseMessaging(){
+    public CustomFirebaseMessaging() {
         messaging = FirebaseMessaging.getInstance();
     }
+
     public void subscribeToTopic(String topic) {
         messaging.subscribeToTopic(topic);
     }
 
-    public void subscribeMoreToTopic() {
-
+    public void subscribeToTopics() {
     }
 
     public void unsuscribeToTopic(String topic) {
         messaging.unsubscribeFromTopic(topic);
     }
 
-    public void unsubscribeMoreToTopic() {
+    public void unsubscribeToTopics() {
 
     }
 }
