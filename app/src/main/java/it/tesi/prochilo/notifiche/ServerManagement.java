@@ -1,10 +1,14 @@
 package it.tesi.prochilo.notifiche;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.List;
 
 public class ServerManagement {
@@ -18,6 +22,7 @@ public class ServerManagement {
     private URL mUrl = null;
     private InputStream mInputStream;
     private OutputStream mOutputStream;
+    private JSONManagement mJSONManagement;
 
     public ServerManagement(String url) {
         this.url = url;
@@ -29,6 +34,7 @@ public class ServerManagement {
     }
 
     public List<String> getTopics() throws IOException {
+        List<String> topics = null;
         try {
             mHttpURLConnection = (HttpURLConnection) mUrl.openConnection();
             mHttpURLConnection.setRequestMethod(HttpMethod.GET.name());
@@ -41,30 +47,38 @@ public class ServerManagement {
                 mInputStream = mHttpURLConnection.getErrorStream();
             }
             final String httpResponseMessage = mHttpURLConnection.getResponseMessage();
-            //Leggi il contenuto tramite l'inputStream
+
+            //topics = JSONObjectManagement.getTopics(mInputStream);
         } catch (IOException ioe) {
 
-        } finally {
+        } //catch (JSONException jsone) {
+
+        //}
+        finally {
             mHttpURLConnection.disconnect();
+            mInputStream.close();
         }
-        //ritorna la lista dei topic
-        return null;
+        return topics;
     }
 
     public void addTopic(String topic) {
         //DA IMPLEMENTARE CON PUT
     }
 
-    public void addTopics(String listaTopic) {
+    public void addTopics(List<String> topics) {
         try {
             mHttpURLConnection = (HttpURLConnection) mUrl.openConnection();
             mHttpURLConnection.setRequestMethod(HttpMethod.POST.name());
             mHttpURLConnection.setDoInput(true);
             mHttpURLConnection.setDoOutput(true);
             mOutputStream = mHttpURLConnection.getOutputStream();
-            mOutputStream.write(listaTopic.getBytes("UTF-8"));
+            //Richiesta
+            JSONObject richiesta = mJSONManagement.createPostRequest("topics",topics);
+
+            //mOutputStream.write(listaTopic.getBytes("UTF-8"));
             //DA MODIFICARE
             mHttpURLConnection.addRequestProperty("content_type", "json");
+
             final int httpResponse = mHttpURLConnection.getResponseCode();
             //CONTROLLO RISPOSTA
 
