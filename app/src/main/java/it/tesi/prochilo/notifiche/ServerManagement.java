@@ -1,5 +1,7 @@
 package it.tesi.prochilo.notifiche;
 
+import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -22,7 +24,8 @@ public class ServerManagement {
     private URL mUrl = null;
     private InputStream mInputStream;
     private OutputStream mOutputStream;
-    private JSONManagement mJSONManagement;
+    private final static String TAG = ServerManagement.class.getSimpleName();
+    private final String CONTENT_TYPE = "Content-type";
 
     public ServerManagement(String url) {
         this.url = url;
@@ -33,28 +36,25 @@ public class ServerManagement {
         }
     }
 
-    public List<String> getTopics() throws IOException {
+    public List<String> getTopics(JSONManagement jsonMangament) throws IOException {
         List<String> topics = null;
         try {
             mHttpURLConnection = (HttpURLConnection) mUrl.openConnection();
             mHttpURLConnection.setRequestMethod(HttpMethod.GET.name());
-            //DA MODIFICARE
-            mHttpURLConnection.addRequestProperty("content_type", "application.json");
+            mHttpURLConnection.addRequestProperty(CONTENT_TYPE, "application/json");
             final int httpRespondeCode = mHttpURLConnection.getResponseCode();
-            if (true) { //VERIFICA IL NUMERO
+            if (httpRespondeCode >= HttpURLConnection.HTTP_OK
+                    && httpRespondeCode > HttpURLConnection.HTTP_MULT_CHOICE) {
                 mInputStream = mHttpURLConnection.getInputStream();
             } else {
                 mInputStream = mHttpURLConnection.getErrorStream();
             }
             final String httpResponseMessage = mHttpURLConnection.getResponseMessage();
-
-            //topics = JSONObjectManagement.getTopics(mInputStream);
+            Log.d(TAG, "Result from server: " + httpResponseMessage);
+            //topics = jsonMangament.getTopics(mInputStream);
         } catch (IOException ioe) {
-
-        } //catch (JSONException jsone) {
-
-        //}
-        finally {
+            Log.e(TAG, "Errore lettura");
+        } finally {
             mHttpURLConnection.disconnect();
             mInputStream.close();
         }
@@ -65,20 +65,15 @@ public class ServerManagement {
         //DA IMPLEMENTARE CON PUT
     }
 
-    public void addTopics(List<String> topics) {
+    public void addTopics(List<String> topics, JSONManagement jsonmanagement) {
         try {
             mHttpURLConnection = (HttpURLConnection) mUrl.openConnection();
             mHttpURLConnection.setRequestMethod(HttpMethod.POST.name());
             mHttpURLConnection.setDoInput(true);
             mHttpURLConnection.setDoOutput(true);
             mOutputStream = mHttpURLConnection.getOutputStream();
-            //Richiesta
-            JSONObject richiesta = mJSONManagement.createPostRequest("topics",topics);
-
-            //mOutputStream.write(listaTopic.getBytes("UTF-8"));
-            //DA MODIFICARE
-            mHttpURLConnection.addRequestProperty("content_type", "json");
-
+            JSONObject richiesta = jsonmanagement.createPostRequest("topics", topics);
+            mHttpURLConnection.addRequestProperty(CONTENT_TYPE ,"json");
             final int httpResponse = mHttpURLConnection.getResponseCode();
             //CONTROLLO RISPOSTA
 

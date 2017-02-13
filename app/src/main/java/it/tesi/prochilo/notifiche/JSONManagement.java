@@ -5,9 +5,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class JSONManagement {
 
@@ -38,34 +40,33 @@ public class JSONManagement {
         return jsonObject;
     }
 
-    public JSONObject createPutRequest(){
+    public JSONObject createPutRequest() {
         return null;
     }
 
-    public JSONObject createGetRequest(){
+    public JSONObject createGetRequest() {
         return null;
     }
 
-    public JSONObject createDeleteRequest(){
-     return null;
+    public JSONObject createDeleteRequest() {
+        return null;
     }
 
-    public List<String> getTopics(String getResult) {
-        List<String> topics_list = new LinkedList<>();
+    public Map<String, String> getTopics(JSONArray mJSONArray) {
+        Map<String, String> topics = new HashMap<>();
         try {
-            final JSONObject mJSONObject = new JSONObject(getResult);
-            JSONObject topics = mJSONObject.getJSONObject("topics");
-            JSONObject topic = null;
-            int i = 1;
-            do {
-                topic = topics.getJSONObject("topicname1");
-                if (topic != null) {
-                    topics_list.add(topic.getString("addDate"));
-                }
-            } while (topic != null);
-        } catch (JSONException jsone) {
+            int i = 0;
+            JSONObject oggetto = mJSONArray.getJSONObject(i);
+            while (oggetto != null) {
+                String nameTopic = oggetto.getString("name");
+                String dateTopic = oggetto.getString("date");
+                topics.put(nameTopic, dateTopic);
+                i++;
+                oggetto = mJSONArray.getJSONObject(i);
+            }
+        } catch (Exception jsone) {
 
         }
-        return topics_list;
+        return topics;
     }
 }
