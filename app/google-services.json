@@ -15,6 +15,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "218395640407-2pcp25itotgd7i0dj1pbh7e1v875csn3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "it.tesi.prochilo.notifiche",
+            "certificate_hash": "d995b1225588fc4e394aa038772299d2f2155728"
+          }
+        },
+        {
+          "client_id": "218395640407-s5l8enbgtkum68h8pbj7td5c5lgqhp66.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "it.tesi.prochilo.notifiche",
+            "certificate_hash": "68c7da0d12a54cfb439c1c1f6f48bf65060c5de6"
+          }
+        },
+        {
           "client_id": "218395640407-9ti0bflu8ngr9di2ms2jdjeaf9fq4rsp.apps.googleusercontent.com",
           "client_type": 3
         }
