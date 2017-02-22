@@ -15,6 +15,16 @@ public class Topic {
         this.timestamp = timestamp;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Id: ").append(id).append(", ");
+        sb.append("UserId: ").append(userId).append(", ");
+        sb.append("Topic: ").append(topic).append(", ");
+        sb.append("Timestamp: ").append(timestamp);
+        return sb.toString();
+    }
+
     public static class Builder{
         private String mId;
         private String mUserId;

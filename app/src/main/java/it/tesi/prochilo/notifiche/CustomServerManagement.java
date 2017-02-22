@@ -16,7 +16,7 @@ import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 
-public class ServerManagement {
+public class CustomServerManagement {
 
     public enum HttpMethod {
         GET, POST, PUT, DELETE;
@@ -26,11 +26,11 @@ public class ServerManagement {
         id, userId, topic, timestamp;
     }
 
-    private static final String TAG = ServerManagement.class.getSimpleName();
+    private static final String TAG = CustomServerManagement.class.getSimpleName();
     private static final String AUTHORIZATION = "Authorization";
     private String mUrlString = null;
 
-    public ServerManagement(String urlString) {
+    public CustomServerManagement(String urlString) {
         this.mUrlString = urlString;
     }
 
@@ -95,6 +95,7 @@ public class ServerManagement {
             outputStream.write(jsonArray.toString().getBytes("UTF-8"));
             outputStream.flush();
             httpResponseMessage = httpURLConnection.getResponseMessage();
+            Log.d(TAG, "Response from Server: " + httpResponseMessage);
         } catch (IOException ioe) {
             Log.d(TAG, "Error open connection");
             ioe.printStackTrace();
