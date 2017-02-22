@@ -13,10 +13,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 public class ServerManagement {
 
@@ -24,96 +22,79 @@ public class ServerManagement {
         GET, POST, PUT, DELETE;
     }
 
+    public enum FieldJSONObject {
+        id, userId, topic, timestamp;
+    }
+
     private static final String TAG = ServerManagement.class.getSimpleName();
     private static final String AUTHORIZATION = "Authorization";
+    private String mUrlString = null;
 
-    public ServerManagement() {
+    public ServerManagement(String urlString) {
+        this.mUrlString = urlString;
     }
 
-
-    public void addUser(String idName, String token) {
-        URL url;
-        HttpURLConnection httpURLConnection;
-        try {
-            url = new URL("http://192.168.1.7:8080/user");
-            httpURLConnection = (HttpURLConnection) url.openConnection();
-            httpURLConnection.setRequestMethod(HttpMethod.PUT.name());
-            httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + token);
-            httpURLConnection.addRequestProperty("Content-type", "application/json");
-            httpURLConnection.setDoOutput(true);
-            JSONArray array = new JSONArray();
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("userId", idName);
-            jsonObject.put("token", token);
-            array.put(jsonObject);
-            OutputStream outputStream = httpURLConnection.getOutputStream();
-            outputStream.write(array.toString().getBytes("UTF-8"));
-            System.out.println(httpURLConnection.getResponseCode());
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        } catch (JSONException jsone) {
-            jsone.printStackTrace();
-        }
-    }
-
-    public void getToken(String idUser) {
-
-    }
-
-    public Map<String, List<String>> getTopics(String token) {
+    public List<Topic> getTopics(String token) {
+        List<Topic> topicList = new LinkedList<>();
         HttpURLConnection httpURLConnection = null;
-        Map<String, List<String>> ritorno = new HashMap<>();
-        URL url;
+        URL url = null;
+        String httpResponseMessage = null;
         try {
-            url = new URL("http://192.168.1.7:8080/topic");
+            url = new URL(mUrlString);
             httpURLConnection = (HttpURLConnection) url.openConnection();
             httpURLConnection.setRequestMethod(HttpMethod.GET.name());
             httpURLConnection.addRequestProperty("Content-Type", "application/json");
             httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + token);
-            final int httpResponseCode = httpURLConnection.getResponseCode();
             InputStream inputStream = null;
+            int httpResponseCode = httpURLConnection.getResponseCode();
             if (httpResponseCode >= HttpURLConnection.HTTP_OK
                     && httpResponseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
                 inputStream = httpURLConnection.getInputStream();
             } else {
                 inputStream = httpURLConnection.getErrorStream();
             }
-            final String httpResponseMessage = httpURLConnection.getResponseMessage();
             JSONArray response = new JSONArray(getString(inputStream));
             for (int i = 0; i < response.length(); i++) {
                 JSONObject object = response.getJSONObject(i);
-                List<String> list = new LinkedList<>();
-                list.add(object.getString("id"));
-                list.add(object.getString("userId"));
-                list.add(object.getString("topic"));
-                list.add(object.getString("timestamp"));
-                ritorno.put("id" + i, list);
+                Topic topic = Topic.Builder
+                        .create(object.getString(FieldJSONObject.id.name())
+                                , object.getString(FieldJSONObject.userId.name()))
+                        .addTopic(object.getString(FieldJSONObject.topic.name()))
+                        .addTimestamp(object.getString(FieldJSONObject.timestamp.name()))
+                        .build();
+                topicList.add(topic);
             }
+            httpResponseMessage = httpURLConnection.getResponseMessage();
+            Log.d(TAG, "Result from server :" + httpResponseMessage);
         } catch (IOException ioe) {
-            Log.d(TAG, "Errore apertura connessione");
+            Log.d(TAG, "Error open connection");
             ioe.printStackTrace();
-        } catch (JSONException jsone) {
+        } catch (JSONException json) {
             Log.d(TAG, "Error JSON");
-            jsone.printStackTrace();
+            json.printStackTrace();
+        } finally {
+            if (httpURLConnection != null) {
+                httpURLConnection.disconnect();
+            }
         }
-        return ritorno;
+        return topicList;
     }
 
     public boolean postAndDeleteRequest(JSONArray jsonArray, String token, HttpMethod method) {
         HttpURLConnection httpURLConnection = null;
         URL url;
-        OutputStream outputStream = null;
+        String httpResponseMessage = null;
         try {
-            url = new URL("http://192.168.1.7:8080/topic");
+            url = new URL(mUrlString);
             httpURLConnection = (HttpURLConnection) url.openConnection();
             httpURLConnection.setRequestMethod(method.name());
             httpURLConnection.addRequestProperty("Content-Type", "application/json");
             httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + token);
             httpURLConnection.setDoOutput(true);
-            outputStream = httpURLConnection.getOutputStream();
+            OutputStream outputStream = httpURLConnection.getOutputStream();
             outputStream.write(jsonArray.toString().getBytes("UTF-8"));
             outputStream.flush();
-            System.out.println(httpURLConnection.getResponseCode());
+            httpResponseMessage = httpURLConnection.getResponseMessage();
         } catch (IOException ioe) {
             Log.d(TAG, "Error open connection");
             ioe.printStackTrace();
@@ -122,7 +103,7 @@ public class ServerManagement {
                 httpURLConnection.disconnect();
             }
         }
-        return true;
+        return httpResponseMessage.equals(HttpURLConnection.HTTP_OK);
     }
 
     private String getString(InputStream inputStream) throws IOException {

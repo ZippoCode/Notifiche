@@ -20,7 +20,7 @@ public class ServerAsyncTask extends AsyncTask<String, String, String> {
 
     @Override
     protected String doInBackground(String... strings) {
-        /*
+
         try {
             JSONArray jsonArray = new JSONArray();
             jsonArray.put((new JSONObject()).put("topic", "first"));
@@ -29,7 +29,6 @@ public class ServerAsyncTask extends AsyncTask<String, String, String> {
         } catch (JSONException jsone) {
             jsone.printStackTrace();
         }
-        */
         //mServerManagement.addUser("prova", "prova");
         return null;
 

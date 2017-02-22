@@ -20,6 +20,7 @@ public class CustomFirebase extends FirebaseInstanceIdService {
     public CustomFirebase() {
         token = FirebaseInstanceId.getInstance().getToken();
         mAuth = FirebaseAuth.getInstance();
+        System.out.println(token);
     }
 
     public void loginUser(Activity activity) {

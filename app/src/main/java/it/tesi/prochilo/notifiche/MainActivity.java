@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         tv = (TextView) findViewById(R.id.testo);
         CustomFirebase customFirebase = new CustomFirebase();
+        /*
         CustomFirebase.mAuthStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -49,22 +50,23 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         customFirebase.loginUser(this);
+        */
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        ServerManagement serverManagement = new ServerManagement();
+        ServerManagement serverManagement = new ServerManagement("http://192.168.1.4:8080/topic");
         ServerAsyncTask serverAsyncTask = new ServerAsyncTask(serverManagement);
         serverAsyncTask.execute("http://192.168.1.4:8080");
-        CustomFirebase.mAuth.addAuthStateListener(CustomFirebase.mAuthStateListener);
+        //CustomFirebase.mAuth.addAuthStateListener(CustomFirebase.mAuthStateListener);
     }
-
+    /*
     @Override
     protected void onStop() {
         super.onStop();
         if (CustomFirebase.mAuthStateListener != null) {
             CustomFirebase.mAuth.removeAuthStateListener(CustomFirebase.mAuthStateListener);
         }
-    }
+    }*/
 }
