@@ -53,7 +53,7 @@ public class CustomServerManagement {
             } else {
                 inputStream = httpURLConnection.getErrorStream();
             }
-            JSONArray response = new JSONArray(getString(inputStream));
+            JSONArray response = new JSONArray(IOUtil.getString(inputStream));
             for (int i = 0; i < response.length(); i++) {
                 JSONObject object = response.getJSONObject(i);
                 Topic topic = Topic.Builder
@@ -104,17 +104,7 @@ public class CustomServerManagement {
                 httpURLConnection.disconnect();
             }
         }
-        return httpResponseMessage.equals(HttpURLConnection.HTTP_OK);
-    }
-
-    private String getString(InputStream inputStream) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while ((line = br.readLine()) != null) {
-            sb.append(line).append('\n');
-        }
-        return sb.toString();
+        return httpResponseMessage.equals("OK");
     }
 
 }

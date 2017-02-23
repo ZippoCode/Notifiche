@@ -8,13 +8,13 @@ import org.json.JSONObject;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class ServerAsyncTask implements ServerMethod {
 
     private CustomServerManagement mCustomServerManagement;
     private CustomFMS customFMS = new CustomFMS();
     private String token;
-    private List<Topic> list_topic = new LinkedList<>();
 
     public ServerAsyncTask(String url) {
         mCustomServerManagement = new CustomServerManagement(url);
@@ -24,8 +24,16 @@ public class ServerAsyncTask implements ServerMethod {
     public boolean addTopic(List<String> topic, String token) {
         PostAsyncTask task = new PostAsyncTask();
         this.token = token;
+        boolean response = false;
         task.execute(topic);
-        return true;
+        try {
+            response = task.get();
+        } catch (ExecutionException ee) {
+            ee.printStackTrace();
+        } catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
+        return response;
     }
 
     @Override
@@ -33,22 +41,37 @@ public class ServerAsyncTask implements ServerMethod {
         GetAsyncTask task = new GetAsyncTask();
         this.token = token;
         task.execute(token);
-        return list_topic;
+        List<Topic> response = null;
+        try {
+            response = task.get();
+        } catch (ExecutionException ee) {
+            ee.printStackTrace();
+        } catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
+        return response;
     }
 
     @Override
     public boolean deleteTopic(List<String> topic, String token) {
         DeleteAsyncTask task = new DeleteAsyncTask();
         this.token = token;
+        boolean response = false;
         task.execute(topic);
-        return false;
+        try {
+            response = task.get();
+        } catch (ExecutionException ee) {
+            ee.printStackTrace();
+        } catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
+        return response;
     }
 
-    private class PostAsyncTask extends AsyncTask<List<String>, Void, Void> {
-        private boolean rispostaGet;
+    private class PostAsyncTask extends AsyncTask<List<String>, Void, Boolean> {
 
         @Override
-        protected Void doInBackground(List<String>... lists) {
+        protected Boolean doInBackground(List<String>... lists) {
             JSONArray array = new JSONArray();
             List<String> strings = lists[0];
             customFMS.subscribeToTopic(strings);
@@ -61,29 +84,23 @@ public class ServerAsyncTask implements ServerMethod {
                     json.printStackTrace();
                 }
             }
-            rispostaGet = mCustomServerManagement.postAndDeleteRequest(array, token, CustomServerManagement.HttpMethod.POST);
-            return null;
+            customFMS.subscribeToTopic(strings);
+            return mCustomServerManagement.postAndDeleteRequest(array, token, CustomServerManagement.HttpMethod.POST);
         }
+
     }
 
     private class GetAsyncTask extends AsyncTask<String, Void, List<Topic>> {
         @Override
         protected List<Topic> doInBackground(String... strings) {
-            ServerAsyncTask.this.list_topic = mCustomServerManagement.getTopics(strings[0]);
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(List<Topic> topics) {
-            super.onPostExecute(topics);
+            return mCustomServerManagement.getTopics(token);
         }
     }
 
-    private class DeleteAsyncTask extends AsyncTask<List<String>, Void, Void> {
-        private boolean rispostaDelete;
+    private class DeleteAsyncTask extends AsyncTask<List<String>, Void, Boolean> {
 
         @Override
-        protected Void doInBackground(List<String>... lists) {
+        protected Boolean doInBackground(List<String>... lists) {
             JSONArray array = new JSONArray();
             List<String> strings = lists[0];
             for (int i = 0; i < strings.size(); i++) {
@@ -95,8 +112,8 @@ public class ServerAsyncTask implements ServerMethod {
                     json.printStackTrace();
                 }
             }
-            rispostaDelete = mCustomServerManagement.postAndDeleteRequest(array, token, CustomServerManagement.HttpMethod.DELETE);
-            return null;
+            customFMS.unsubscribeFromTopic(strings);
+            return mCustomServerManagement.postAndDeleteRequest(array, token, CustomServerManagement.HttpMethod.DELETE);
         }
     }
 }
