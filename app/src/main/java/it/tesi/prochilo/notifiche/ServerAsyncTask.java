@@ -15,16 +15,19 @@ public class ServerAsyncTask implements ServerMethod {
     private CustomServerManagement mCustomServerManagement;
     private CustomFMS customFMS = new CustomFMS();
     private String token;
+    private ServerListener mServerListener;
+    private ServerListener serverListener = null;
 
     public ServerAsyncTask(String url) {
         mCustomServerManagement = new CustomServerManagement(url);
     }
 
     @Override
-    public boolean addTopic(List<String> topic, String token) {
+    public boolean addTopics(List<Topic> topic, String token, ServerListener serverListener) {
         PostAsyncTask task = new PostAsyncTask();
         this.token = token;
         boolean response = false;
+        this.serverListener = serverListener;
         task.execute(topic);
         try {
             response = task.get();
@@ -37,9 +40,10 @@ public class ServerAsyncTask implements ServerMethod {
     }
 
     @Override
-    public List<Topic> getTopic(String token) {
+    public List<Topic> getTopics(String token, ServerListener serverListener) {
         GetAsyncTask task = new GetAsyncTask();
         this.token = token;
+        this.serverListener = serverListener;
         task.execute(token);
         List<Topic> response = null;
         try {
@@ -53,9 +57,10 @@ public class ServerAsyncTask implements ServerMethod {
     }
 
     @Override
-    public boolean deleteTopic(List<String> topic, String token) {
+    public boolean deleteTopics(List<Topic> topic, String token, ServerListener serverListener) {
         DeleteAsyncTask task = new DeleteAsyncTask();
         this.token = token;
+        this.serverListener = serverListener;
         boolean response = false;
         task.execute(topic);
         try {
@@ -68,24 +73,12 @@ public class ServerAsyncTask implements ServerMethod {
         return response;
     }
 
-    private class PostAsyncTask extends AsyncTask<List<String>, Void, Boolean> {
+    private class PostAsyncTask extends AsyncTask<List<Topic>, Void, Boolean> {
 
         @Override
-        protected Boolean doInBackground(List<String>... lists) {
-            JSONArray array = new JSONArray();
-            List<String> strings = lists[0];
-            customFMS.subscribeToTopic(strings);
-            for (int i = 0; i < strings.size(); i++) {
-                JSONObject topic = new JSONObject();
-                try {
-                    topic.put("topic", strings.get(i));
-                    array.put(topic);
-                } catch (JSONException json) {
-                    json.printStackTrace();
-                }
-            }
-            customFMS.subscribeToTopic(strings);
-            return mCustomServerManagement.postAndDeleteRequest(array, token, CustomServerManagement.HttpMethod.POST);
+        protected Boolean doInBackground(List<Topic>... lists) {
+            customFMS.subscribeToTopic(lists[0]);
+            return mCustomServerManagement.postAndDeleteRequest(lists[0], token, CustomServerManagement.HttpMethod.POST, serverListener);
         }
 
     }
@@ -93,27 +86,16 @@ public class ServerAsyncTask implements ServerMethod {
     private class GetAsyncTask extends AsyncTask<String, Void, List<Topic>> {
         @Override
         protected List<Topic> doInBackground(String... strings) {
-            return mCustomServerManagement.getTopics(token);
+            return mCustomServerManagement.getTopics(token, serverListener);
         }
     }
 
-    private class DeleteAsyncTask extends AsyncTask<List<String>, Void, Boolean> {
+    private class DeleteAsyncTask extends AsyncTask<List<Topic>, Void, Boolean> {
 
         @Override
-        protected Boolean doInBackground(List<String>... lists) {
-            JSONArray array = new JSONArray();
-            List<String> strings = lists[0];
-            for (int i = 0; i < strings.size(); i++) {
-                JSONObject topic = new JSONObject();
-                try {
-                    topic.put("topic", strings.get(i));
-                    array.put(topic);
-                } catch (JSONException json) {
-                    json.printStackTrace();
-                }
-            }
-            customFMS.unsubscribeFromTopic(strings);
-            return mCustomServerManagement.postAndDeleteRequest(array, token, CustomServerManagement.HttpMethod.DELETE);
+        protected Boolean doInBackground(List<Topic>... lists) {
+            customFMS.unsubscribeFromTopic(lists[0]);
+            return mCustomServerManagement.postAndDeleteRequest(lists[0], token, CustomServerManagement.HttpMethod.DELETE, serverListener);
         }
     }
 }

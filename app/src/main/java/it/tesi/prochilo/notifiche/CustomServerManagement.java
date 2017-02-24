@@ -6,10 +6,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -19,7 +17,7 @@ import java.util.List;
 public class CustomServerManagement {
 
     public enum HttpMethod {
-        GET, POST, PUT, DELETE;
+        GET, POST, DELETE;
     }
 
     public enum FieldJSONObject {
@@ -29,16 +27,17 @@ public class CustomServerManagement {
     private static final String TAG = CustomServerManagement.class.getSimpleName();
     private static final String AUTHORIZATION = "Authorization";
     private String mUrlString = null;
+    private ServerListener mServerListener;
 
     public CustomServerManagement(String urlString) {
         this.mUrlString = urlString;
     }
 
-    public List<Topic> getTopics(String token) {
+    public List<Topic> getTopics(String token, ServerListener serverListener) {
         List<Topic> topicList = new LinkedList<>();
-        HttpURLConnection httpURLConnection = null;
-        URL url = null;
         String httpResponseMessage = null;
+        URL url = null;
+        HttpURLConnection httpURLConnection = null;
         try {
             url = new URL(mUrlString);
             httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -50,8 +49,10 @@ public class CustomServerManagement {
             if (httpResponseCode >= HttpURLConnection.HTTP_OK
                     && httpResponseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
                 inputStream = httpURLConnection.getInputStream();
+                serverListener.success();
             } else {
                 inputStream = httpURLConnection.getErrorStream();
+                serverListener.failure();
             }
             JSONArray response = new JSONArray(IOUtil.getString(inputStream));
             for (int i = 0; i < response.length(); i++) {
@@ -80,10 +81,10 @@ public class CustomServerManagement {
         return topicList;
     }
 
-    public boolean postAndDeleteRequest(JSONArray jsonArray, String token, HttpMethod method) {
-        HttpURLConnection httpURLConnection = null;
-        URL url;
+    public boolean postAndDeleteRequest(List<Topic> topicsList, String token, HttpMethod method, ServerListener serverListener) {
         String httpResponseMessage = null;
+        URL url = null;
+        HttpURLConnection httpURLConnection = null;
         try {
             url = new URL(mUrlString);
             httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -92,13 +93,26 @@ public class CustomServerManagement {
             httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + token);
             httpURLConnection.setDoOutput(true);
             OutputStream outputStream = httpURLConnection.getOutputStream();
+            JSONArray jsonArray = new JSONArray();
+            for (int i = 0; i < topicsList.size(); i++) {
+                JSONObject topic = new JSONObject();
+                topic.put("topic", topicsList.get(i).topic);
+                jsonArray.put(topic);
+            }
             outputStream.write(jsonArray.toString().getBytes("UTF-8"));
             outputStream.flush();
+            int httpResponseCode = httpURLConnection.getResponseCode();
+            if (httpResponseCode == HttpURLConnection.HTTP_OK) {
+                serverListener.success();
+            }
             httpResponseMessage = httpURLConnection.getResponseMessage();
             Log.d(TAG, "Response from Server: " + httpResponseMessage);
         } catch (IOException ioe) {
             Log.d(TAG, "Error open connection");
             ioe.printStackTrace();
+        } catch (JSONException json) {
+            Log.d(TAG, "Error JSON");
+            json.printStackTrace();
         } finally {
             if (httpURLConnection != null) {
                 httpURLConnection.disconnect();

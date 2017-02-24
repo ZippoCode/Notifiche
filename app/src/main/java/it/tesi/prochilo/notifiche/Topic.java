@@ -25,32 +25,33 @@ public class Topic {
         return sb.toString();
     }
 
-    public static class Builder{
+    public static class Builder {
         private String mId;
         private String mUserId;
         private String mTopic;
         private String mTimestamp;
 
-        private Builder(final String id, final String userId){
+        private Builder(final String id, final String userId) {
             this.mId = id;
             this.mUserId = userId;
         }
-        public static Builder create(final String id, final String mUserId){
-            return new Builder(id,mUserId);
+
+        public static Builder create(final String id, final String mUserId) {
+            return new Builder(id, mUserId);
         }
 
-        public Builder addTopic(final String topic){
+        public Builder addTopic(final String topic) {
             this.mTopic = topic;
             return this;
         }
 
-        public Builder addTimestamp(final String timestamp){
+        public Builder addTimestamp(final String timestamp) {
             this.mTimestamp = timestamp;
-            return  this;
+            return this;
         }
 
-        public Topic build(){
-            return  new Topic(mId, mUserId, mTopic, mTimestamp);
+        public Topic build() {
+            return new Topic(mId, mUserId, mTopic, mTimestamp);
         }
     }
 }

@@ -6,10 +6,10 @@ import java.util.List;
 
 public interface ServerMethod {
 
-    public boolean addTopic(List<String> topic, String token);
+    public boolean addTopics(List<Topic> topic, String token, ServerListener serverListener);
 
-    public List<Topic> getTopic(String token);
+    public List<Topic> getTopics(String token, ServerListener serverListener);
 
-    public boolean deleteTopic(List<String> topic, String token);
+    public boolean deleteTopics(List<Topic> topic, String token, ServerListener serverListener);
 
 }
