@@ -27,14 +27,13 @@ public class CustomServerManagement {
     private static final String TAG = CustomServerManagement.class.getSimpleName();
     private static final String AUTHORIZATION = "Authorization";
     private String mUrlString = null;
-    private ServerListener mServerListener;
 
     public CustomServerManagement(String urlString) {
         this.mUrlString = urlString;
     }
 
-    public List<Topic> getTopics(String token, ServerListener serverListener) {
-        List<Topic> topicList = new LinkedList<>();
+    public List<Topic> getTopics(String token) {
+        List<Topic> topicList = null;
         String httpResponseMessage = null;
         URL url = null;
         HttpURLConnection httpURLConnection = null;
@@ -49,10 +48,9 @@ public class CustomServerManagement {
             if (httpResponseCode >= HttpURLConnection.HTTP_OK
                     && httpResponseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
                 inputStream = httpURLConnection.getInputStream();
-                serverListener.success();
+                topicList = new LinkedList<>();
             } else {
                 inputStream = httpURLConnection.getErrorStream();
-                serverListener.failure();
             }
             JSONArray response = new JSONArray(IOUtil.getString(inputStream));
             for (int i = 0; i < response.length(); i++) {
@@ -81,8 +79,8 @@ public class CustomServerManagement {
         return topicList;
     }
 
-    public boolean postAndDeleteRequest(List<Topic> topicsList, String token, HttpMethod method, ServerListener serverListener) {
-        String httpResponseMessage = null;
+    public boolean postAndDeleteRequest(List<Topic> topicsList, String token, HttpMethod method) {
+        int httpResponseCode = -1;
         URL url = null;
         HttpURLConnection httpURLConnection = null;
         try {
@@ -101,11 +99,8 @@ public class CustomServerManagement {
             }
             outputStream.write(jsonArray.toString().getBytes("UTF-8"));
             outputStream.flush();
-            int httpResponseCode = httpURLConnection.getResponseCode();
-            if (httpResponseCode == HttpURLConnection.HTTP_OK) {
-                serverListener.success();
-            }
-            httpResponseMessage = httpURLConnection.getResponseMessage();
+            httpResponseCode = httpURLConnection.getResponseCode();
+            String httpResponseMessage = httpURLConnection.getResponseMessage();
             Log.d(TAG, "Response from Server: " + httpResponseMessage);
         } catch (IOException ioe) {
             Log.d(TAG, "Error open connection");
@@ -118,7 +113,7 @@ public class CustomServerManagement {
                 httpURLConnection.disconnect();
             }
         }
-        return httpResponseMessage.equals("OK");
+        return httpResponseCode == HttpURLConnection.HTTP_OK;
     }
 
 }

@@ -2,11 +2,6 @@ package it.tesi.prochilo.notifiche;
 
 import android.os.AsyncTask;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -16,7 +11,6 @@ public class ServerAsyncTask implements ServerMethod {
     private CustomFMS customFMS = new CustomFMS();
     private String token;
     private ServerListener mServerListener;
-    private ServerListener serverListener = null;
 
     public ServerAsyncTask(String url) {
         mCustomServerManagement = new CustomServerManagement(url);
@@ -27,7 +21,7 @@ public class ServerAsyncTask implements ServerMethod {
         PostAsyncTask task = new PostAsyncTask();
         this.token = token;
         boolean response = false;
-        this.serverListener = serverListener;
+        this.mServerListener = serverListener;
         task.execute(topic);
         try {
             response = task.get();
@@ -43,7 +37,7 @@ public class ServerAsyncTask implements ServerMethod {
     public List<Topic> getTopics(String token, ServerListener serverListener) {
         GetAsyncTask task = new GetAsyncTask();
         this.token = token;
-        this.serverListener = serverListener;
+        this.mServerListener = serverListener;
         task.execute(token);
         List<Topic> response = null;
         try {
@@ -60,7 +54,7 @@ public class ServerAsyncTask implements ServerMethod {
     public boolean deleteTopics(List<Topic> topic, String token, ServerListener serverListener) {
         DeleteAsyncTask task = new DeleteAsyncTask();
         this.token = token;
-        this.serverListener = serverListener;
+        this.mServerListener = serverListener;
         boolean response = false;
         task.execute(topic);
         try {
@@ -77,8 +71,15 @@ public class ServerAsyncTask implements ServerMethod {
 
         @Override
         protected Boolean doInBackground(List<Topic>... lists) {
+            boolean flag = false;
             customFMS.subscribeToTopic(lists[0]);
-            return mCustomServerManagement.postAndDeleteRequest(lists[0], token, CustomServerManagement.HttpMethod.POST, serverListener);
+            flag = mCustomServerManagement.postAndDeleteRequest(lists[0], token, CustomServerManagement.HttpMethod.POST);
+            if (flag == true) {
+                mServerListener.success();
+            } else {
+                mServerListener.failure();
+            }
+            return flag;
         }
 
     }
@@ -86,7 +87,13 @@ public class ServerAsyncTask implements ServerMethod {
     private class GetAsyncTask extends AsyncTask<String, Void, List<Topic>> {
         @Override
         protected List<Topic> doInBackground(String... strings) {
-            return mCustomServerManagement.getTopics(token, serverListener);
+            List<Topic> topics = mCustomServerManagement.getTopics(token);
+            if (topics != null) {
+                mServerListener.success();
+            } else {
+                mServerListener.failure();
+            }
+            return topics;
         }
     }
 
@@ -94,8 +101,15 @@ public class ServerAsyncTask implements ServerMethod {
 
         @Override
         protected Boolean doInBackground(List<Topic>... lists) {
+            boolean flag = false;
             customFMS.unsubscribeFromTopic(lists[0]);
-            return mCustomServerManagement.postAndDeleteRequest(lists[0], token, CustomServerManagement.HttpMethod.DELETE, serverListener);
+            flag = mCustomServerManagement.postAndDeleteRequest(lists[0], token, CustomServerManagement.HttpMethod.DELETE);
+            if (flag == true) {
+                mServerListener.success();
+            } else {
+                mServerListener.failure();
+            }
+            return flag;
         }
     }
 }

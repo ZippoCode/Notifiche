@@ -27,10 +27,9 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        /*
         ServerAsyncTask task = new ServerAsyncTask("http://192.168.1.7:8080/topic");
-        Topic topic = Topic.Builder.create("id","id")
-                .addTopic("Listener")
+        Topic topic = Topic.Builder.create("id", "id")
+                .addTopic("Listener_Bug")
                 .addTimestamp("45865")
                 .build();
         List<Topic> list = new LinkedList<>();
@@ -46,8 +45,8 @@ public class MainActivity extends AppCompatActivity {
             public void failure() {
                 System.out.println("CI SONO RIUSCITO COMUNQUE");
             }
-        });*/
-        (new TestToken()).execute();
+        });
+        //(new TestToken()).execute();
     }
 
 
@@ -56,17 +55,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... voids) {
             CustomFMS customFMS = new CustomFMS();
-            System.out.println(customFMS.getTopics(new ServerListener() {
-                @Override
-                public void success() {
-
-                }
-
-                @Override
-                public void failure() {
-
-                }
-            }).toString());
+            System.out.println(customFMS.getTopics());
             return null;
         }
     }

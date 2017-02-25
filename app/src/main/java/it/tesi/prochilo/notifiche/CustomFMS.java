@@ -1,11 +1,7 @@
 package it.tesi.prochilo.notifiche;
 
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.os.AsyncTask;
-import android.util.JsonReader;
-
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.FirebaseInstanceIdService;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 
@@ -13,8 +9,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -26,7 +20,7 @@ public class CustomFMS extends FirebaseMessagingService {
 
     private String key = "AAAAMtllAlc:APA91bGrqrveOBwyh81ycpsEx-E1r9WJ4nAIdF6d6dvRFjz1NZyTc__z_N5DXE2RhVjlC3vkBwuYehnSewWpIJU9uf-Velr0qyOUS6FPzuE9Y-FnhNxY3_9qpkjaQ89HF77mUcIui1Pm";
 
-    public JSONObject getTopics(ServerListener serverListener) {
+    public JSONObject getTopics() {
         HttpURLConnection httpURLConnection;
         URL url;
         JSONObject response = null;
@@ -59,7 +53,7 @@ public class CustomFMS extends FirebaseMessagingService {
         }
     }
 
-    public JSONObject subscribeToToken(String topic, List<String> tokenString, ServerListener serverListener) {
+    public JSONObject subscribeToToken(String topic, List<String> tokenString) {
         HttpURLConnection httpURLConnection;
         URL url;
         JSONObject response = null;
@@ -81,6 +75,10 @@ public class CustomFMS extends FirebaseMessagingService {
             outputStream.write(request.toString().getBytes("UTF-8"));
             InputStream inputStream = httpURLConnection.getInputStream();
             response = new JSONObject(IOUtil.getString(inputStream));
+            int httpResponseCode = httpURLConnection.getResponseCode();
+            if (httpResponseCode == HttpURLConnection.HTTP_OK) {
+
+            }
         } catch (IOException ioe) {
             ioe.printStackTrace();
         } catch (JSONException json) {
