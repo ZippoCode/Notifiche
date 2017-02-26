@@ -18,6 +18,10 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".activity.GetActivity" />
+        <activity android:name=".activity.PostActivity" />
+        <activity android:name=".activity.DeleteActivity" />
+
         <service android:name=".CustomFMS">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

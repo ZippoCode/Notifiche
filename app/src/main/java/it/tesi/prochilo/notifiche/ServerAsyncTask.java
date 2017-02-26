@@ -2,26 +2,27 @@ package it.tesi.prochilo.notifiche;
 
 import android.os.AsyncTask;
 
+import com.google.firebase.iid.FirebaseInstanceId;
+
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-public class ServerAsyncTask implements ServerMethod {
+public class ServerAsyncTask {
 
     private CustomServerManagement mCustomServerManagement;
     private CustomFMS customFMS = new CustomFMS();
     private String token;
     private ServerListener mServerListener;
 
-    public ServerAsyncTask(String url) {
+    public ServerAsyncTask(String url, ServerListener mServerListener) {
         mCustomServerManagement = new CustomServerManagement(url);
+        this.mServerListener = mServerListener;
     }
 
-    @Override
-    public boolean addTopics(List<Topic> topic, String token, ServerListener serverListener) {
+    public boolean addTopics(List<String> topic, String token) {
         PostAsyncTask task = new PostAsyncTask();
         this.token = token;
         boolean response = false;
-        this.mServerListener = serverListener;
         task.execute(topic);
         try {
             response = task.get();
@@ -33,11 +34,9 @@ public class ServerAsyncTask implements ServerMethod {
         return response;
     }
 
-    @Override
-    public List<Topic> getTopics(String token, ServerListener serverListener) {
+    public List<Topic> getTopics(String token) {
         GetAsyncTask task = new GetAsyncTask();
         this.token = token;
-        this.mServerListener = serverListener;
         task.execute(token);
         List<Topic> response = null;
         try {
@@ -50,11 +49,9 @@ public class ServerAsyncTask implements ServerMethod {
         return response;
     }
 
-    @Override
-    public boolean deleteTopics(List<Topic> topic, String token, ServerListener serverListener) {
+    public boolean deleteTopics(List<String> topic, String token) {
         DeleteAsyncTask task = new DeleteAsyncTask();
         this.token = token;
-        this.mServerListener = serverListener;
         boolean response = false;
         task.execute(topic);
         try {
@@ -67,13 +64,13 @@ public class ServerAsyncTask implements ServerMethod {
         return response;
     }
 
-    private class PostAsyncTask extends AsyncTask<List<Topic>, Void, Boolean> {
+    private class PostAsyncTask extends AsyncTask<List<String>, Void, Boolean> {
 
         @Override
-        protected Boolean doInBackground(List<Topic>... lists) {
+        protected Boolean doInBackground(List<String>... lists) {
             boolean flag = false;
-            customFMS.subscribeToTopic(lists[0]);
-            flag = mCustomServerManagement.postAndDeleteRequest(lists[0], token, CustomServerManagement.HttpMethod.POST);
+            customFMS.subscribeToTopics(lists[0], null, mServerListener);
+            flag = mCustomServerManagement.subscribeToTopics(lists[0], token, mServerListener);
             if (flag == true) {
                 mServerListener.success();
             } else {
@@ -87,28 +84,19 @@ public class ServerAsyncTask implements ServerMethod {
     private class GetAsyncTask extends AsyncTask<String, Void, List<Topic>> {
         @Override
         protected List<Topic> doInBackground(String... strings) {
-            List<Topic> topics = mCustomServerManagement.getTopics(token);
-            if (topics != null) {
-                mServerListener.success();
-            } else {
-                mServerListener.failure();
-            }
+            List<Topic> topics = mCustomServerManagement.getTopics(token, mServerListener);
+            System.out.println(customFMS.getTopics(FirebaseInstanceId.getInstance().getToken(), mServerListener));
             return topics;
         }
     }
 
-    private class DeleteAsyncTask extends AsyncTask<List<Topic>, Void, Boolean> {
+    private class DeleteAsyncTask extends AsyncTask<List<String>, Void, Boolean> {
 
         @Override
-        protected Boolean doInBackground(List<Topic>... lists) {
+        protected Boolean doInBackground(List<String>... lists) {
             boolean flag = false;
-            customFMS.unsubscribeFromTopic(lists[0]);
-            flag = mCustomServerManagement.postAndDeleteRequest(lists[0], token, CustomServerManagement.HttpMethod.DELETE);
-            if (flag == true) {
-                mServerListener.success();
-            } else {
-                mServerListener.failure();
-            }
+            customFMS.unsubscribeFromTopics(lists[0], null, mServerListener);
+            flag = mCustomServerManagement.unsubscribeFromTopics(lists[0], token, mServerListener);
             return flag;
         }
     }

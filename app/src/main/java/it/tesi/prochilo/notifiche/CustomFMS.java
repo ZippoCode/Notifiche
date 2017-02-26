@@ -1,7 +1,5 @@
 package it.tesi.prochilo.notifiche;
 
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.FirebaseInstanceIdService;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 
@@ -14,18 +12,43 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
-public class CustomFMS extends FirebaseMessagingService {
+public class CustomFMS extends FirebaseMessagingService implements ServerMethod {
 
     private String key = "AAAAMtllAlc:APA91bGrqrveOBwyh81ycpsEx-E1r9WJ4nAIdF6d6dvRFjz1NZyTc__z_N5DXE2RhVjlC3vkBwuYehnSewWpIJU9uf-Velr0qyOUS6FPzuE9Y-FnhNxY3_9qpkjaQ89HF77mUcIui1Pm";
 
-    public JSONObject getTopics() {
+    /**
+     * Sottoscrive il token ad una lista di topic presso il Firebase Cloud Messaging
+     *
+     * @param topic
+     * @param token
+     * @param serverListener
+     * @return
+     */
+    @Override
+    public boolean subscribeToTopics(List<String> topic, String token, ServerListener serverListener) {
+        for (int i = 0; i < topic.size(); i++) {
+            FirebaseMessaging.getInstance().subscribeToTopic(topic.get(i));
+        }
+        serverListener.success();
+        return true;
+    }
+
+    /**
+     * Ritorna la lista di topic a cui è iscritto il token sul Firebase Cloud Messaging
+     *
+     * @param token
+     * @return
+     */
+    @Override
+    public List<Topic> getTopics(String token, ServerListener serverListener) {
         HttpURLConnection httpURLConnection;
         URL url;
         JSONObject response = null;
         try {
-            String token = FirebaseInstanceId.getInstance().getToken();
             url = new URL("https://iid.googleapis.com/iid/info/" + token + "?details=true");
             httpURLConnection = (HttpURLConnection) url.openConnection();
             httpURLConnection.addRequestProperty("Content-Type", "application/json");
@@ -33,24 +56,34 @@ public class CustomFMS extends FirebaseMessagingService {
             httpURLConnection.setRequestMethod("GET");
             InputStream inputStream = httpURLConnection.getInputStream();
             response = new JSONObject(IOUtil.getString(inputStream));
+            int httpResponseCode = httpURLConnection.getResponseCode();
+            if (httpResponseCode == HttpURLConnection.HTTP_OK) {
+                serverListener.success();
+            }
         } catch (IOException ioe) {
             ioe.printStackTrace();
+            serverListener.failure();
         } catch (JSONException json) {
             json.printStackTrace();
+            serverListener.failure();
         }
-        return response;
+        return elaborateTopics(response);
     }
 
-    public void subscribeToTopic(List<Topic> topic) {
+    /**
+     * Disiscrive il token alla lista presso il Firebase Cloud Messaging
+     *
+     * @param topic
+     * @param token
+     * @return
+     */
+    @Override
+    public boolean unsubscribeFromTopics(List<String> topic, String token, ServerListener serverListener) {
         for (int i = 0; i < topic.size(); i++) {
-            FirebaseMessaging.getInstance().subscribeToTopic(topic.get(i).topic);
+            FirebaseMessaging.getInstance().unsubscribeFromTopic(topic.get(i));
         }
-    }
-
-    public void unsubscribeFromTopic(List<Topic> topic) {
-        for (int i = 0; i < topic.size(); i++) {
-            FirebaseMessaging.getInstance().unsubscribeFromTopic(topic.get(i).topic);
-        }
+        serverListener.success();
+        return true;
     }
 
     public JSONObject subscribeToToken(String topic, List<String> tokenString) {
@@ -85,5 +118,25 @@ public class CustomFMS extends FirebaseMessagingService {
             json.printStackTrace();
         }
         return response;
+    }
+
+    private List<Topic> elaborateTopics(JSONObject jsonObject) {
+        List<Topic> topicsList = new LinkedList<>();
+        try {
+            JSONObject topics = (jsonObject.getJSONObject("rel")).getJSONObject("topics");
+            Iterator<String> topicsIterator = topics.keys();
+            while (topicsIterator.hasNext()) {
+                String topicName = topicsIterator.next();
+                JSONObject topicInfo = topics.getJSONObject(topicName);
+                Topic topic = Topic.Builder.create("", "")
+                        .addTopic(topicName)
+                        .addTimestamp(topicInfo.getString("addDate"))
+                        .build();
+                topicsList.add(topic);
+            }
+        } catch (JSONException jsone) {
+            jsone.printStackTrace();
+        }
+        return topicsList;
     }
 }
