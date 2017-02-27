@@ -15,10 +15,12 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class CustomFMS extends FirebaseMessagingService implements ServerMethod {
 
     private String key = "AAAAMtllAlc:APA91bGrqrveOBwyh81ycpsEx-E1r9WJ4nAIdF6d6dvRFjz1NZyTc__z_N5DXE2RhVjlC3vkBwuYehnSewWpIJU9uf-Velr0qyOUS6FPzuE9Y-FnhNxY3_9qpkjaQ89HF77mUcIui1Pm";
+    private String regularExpression = "[a-zA-Z0-9-_.~%]{1,900}";
 
     /**
      * Sottoscrive il token ad una lista di topic presso il Firebase Cloud Messaging
@@ -30,10 +32,17 @@ public class CustomFMS extends FirebaseMessagingService implements ServerMethod 
      */
     @Override
     public boolean subscribeToTopics(List<String> topic, String token, ServerListener serverListener) {
+        boolean flag = true;
         for (int i = 0; i < topic.size(); i++) {
-            FirebaseMessaging.getInstance().subscribeToTopic(topic.get(i));
+            if (Pattern.matches(regularExpression, topic.get(i)))
+                FirebaseMessaging.getInstance().subscribeToTopic(topic.get(i));
+            else
+                flag = false;
         }
-        serverListener.success();
+        if (flag)
+            serverListener.success();
+        else
+            serverListener.failure();
         return true;
     }
 
@@ -79,10 +88,17 @@ public class CustomFMS extends FirebaseMessagingService implements ServerMethod 
      */
     @Override
     public boolean unsubscribeFromTopics(List<String> topic, String token, ServerListener serverListener) {
+        boolean flag = true;
         for (int i = 0; i < topic.size(); i++) {
-            FirebaseMessaging.getInstance().unsubscribeFromTopic(topic.get(i));
+            if (Pattern.matches(regularExpression, topic.get(i)))
+                FirebaseMessaging.getInstance().unsubscribeFromTopic(topic.get(i));
+            else
+                flag = false;
         }
-        serverListener.success();
+        if (flag)
+            serverListener.success();
+        else
+            serverListener.failure();
         return true;
     }
 
@@ -110,7 +126,7 @@ public class CustomFMS extends FirebaseMessagingService implements ServerMethod 
             response = new JSONObject(IOUtil.getString(inputStream));
             int httpResponseCode = httpURLConnection.getResponseCode();
             if (httpResponseCode == HttpURLConnection.HTTP_OK) {
-
+                //RICHIESTA OK
             }
         } catch (IOException ioe) {
             ioe.printStackTrace();

@@ -70,21 +70,21 @@ public class CustomServerManagement implements ServerMethod {
             httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + token);
             InputStream inputStream = null;
             int httpResponseCode = httpURLConnection.getResponseCode();
-            if (httpResponseCode == HttpURLConnection.HTTP_OK) {
+            if (httpResponseCode == HttpURLConnection.HTTP_ACCEPTED) {
                 inputStream = httpURLConnection.getInputStream();
                 topicList = new LinkedList<>();
                 serverListener.success();
-            }
-            JSONArray response = new JSONArray(IOUtil.getString(inputStream));
-            for (int i = 0; i < response.length(); i++) {
-                JSONObject object = response.getJSONObject(i);
-                Topic topic = Topic.Builder
-                        .create(object.getString(FieldJSONObject.id.name())
-                                , object.getString(FieldJSONObject.userId.name()))
-                        .addTopic(object.getString(FieldJSONObject.topic.name()))
-                        .addTimestamp(object.getString(FieldJSONObject.timestamp.name()))
-                        .build();
-                topicList.add(topic);
+                JSONArray response = new JSONArray(IOUtil.getString(inputStream));
+                for (int i = 0; i < response.length(); i++) {
+                    JSONObject object = response.getJSONObject(i);
+                    Topic topic = Topic.Builder
+                            .create(object.getString(FieldJSONObject.id.name())
+                                    , object.getString(FieldJSONObject.userId.name()))
+                            .addTopic(object.getString(FieldJSONObject.topic.name()))
+                            .addTimestamp(object.getString(FieldJSONObject.timestamp.name()))
+                            .build();
+                    topicList.add(topic);
+                }
             }
             httpResponseMessage = httpURLConnection.getResponseMessage();
             Log.d(TAG, "Result from server :" + httpResponseMessage);
@@ -109,6 +109,7 @@ public class CustomServerManagement implements ServerMethod {
      *
      * @param topic
      * @param token
+     * @param serverListener
      * @return
      */
     @Override
