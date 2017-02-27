@@ -10,23 +10,28 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-public class ServerAsyncTask {
+public class ServerAsyncTask implements ServerInterface {
 
     private CustomServerManagement mCustomServerManagement;
     private CustomFMS customFMS = new CustomFMS();
     private String token;
     private ServerListener mServerListener;
 
-    public ServerAsyncTask(String url, ServerListener serverListener) {
+    public ServerAsyncTask(String url) {
         mCustomServerManagement = new CustomServerManagement(url);
+    }
+
+    @Override
+    public void setOnServerListener(ServerListener serverListener) {
         this.mServerListener = serverListener;
     }
 
-    public boolean subscribeToTopics(List<String> topic, String token) {
+    @Override
+    public boolean subscribeToTopics(List<String> topicsList, String token) {
         PostAsyncTask task = new PostAsyncTask();
         this.token = token;
         boolean response = false;
-        task.execute(topic);
+        task.execute(topicsList);
         try {
             response = task.get();
         } catch (ExecutionException ee) {
@@ -37,6 +42,7 @@ public class ServerAsyncTask {
         return response;
     }
 
+    @Override
     public List<Topic> getTopics(String token) {
         GetAsyncTask task = new GetAsyncTask();
         this.token = token;
@@ -52,11 +58,12 @@ public class ServerAsyncTask {
         return response;
     }
 
-    public boolean unsubscribeFromTopics(List<String> topic, String token) {
+    @Override
+    public boolean unsubscribeFromTopics(List<String> topicsList, String token) {
         DeleteAsyncTask task = new DeleteAsyncTask();
         this.token = token;
         boolean response = false;
-        task.execute(topic);
+        task.execute(topicsList);
         try {
             response = task.get();
         } catch (ExecutionException ee) {
