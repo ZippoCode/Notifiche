@@ -1,6 +1,9 @@
 package it.tesi.prochilo.notifiche;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,5 +24,4 @@ public class IOUtil {
         }
         return sb.toString();
     }
-
 }

@@ -14,7 +14,7 @@ import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 
-public class CustomServerManagement implements ServerMethod {
+public class CustomServerManagement implements ServerRestMethod {
 
     public enum HttpMethod {
         GET, POST, DELETE;
@@ -41,61 +41,55 @@ public class CustomServerManagement implements ServerMethod {
      *
      * @param topicsList
      * @param token
-     * @param serverListener
      * @return True se la richiesta ha avuto successo, altrimenti ritorna false
      */
     @Override
-    public boolean subscribeToTopics(List<String> topicsList, String token, ServerListener serverListener) {
-        return postAndDeleteRequest(topicsList, token, HttpMethod.POST, serverListener);
+    public boolean postTopics(List<String> topicsList, String token) throws IOException {
+        return postAndDeleteRequest(topicsList, token, HttpMethod.POST);
     }
 
     /**
      * Ritorna la lista di Topic a cui è sottoscritto il token sul Server Custom
      *
      * @param token
-     * @param serverListener
      * @return La lista dei Topic
      */
     @Override
-    public List<Topic> getTopics(String token, ServerListener serverListener) {
+    public List<Topic> getTopics(String token) throws IOException {
         List<Topic> topicList = null;
         String httpResponseMessage = null;
         URL url = null;
         HttpURLConnection httpURLConnection = null;
+        url = new URL(mUrlString);
+        httpURLConnection = (HttpURLConnection) url.openConnection();
+        httpURLConnection.setRequestMethod(HttpMethod.GET.name());
+        httpURLConnection.addRequestProperty("Content-Type", "application/json");
+        httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + token);
+        InputStream inputStream = null;
         try {
-            url = new URL(mUrlString);
-            httpURLConnection = (HttpURLConnection) url.openConnection();
-            httpURLConnection.setRequestMethod(HttpMethod.GET.name());
-            httpURLConnection.addRequestProperty("Content-Type", "application/json");
-            httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + token);
-            InputStream inputStream = null;
             int httpResponseCode = httpURLConnection.getResponseCode();
-            if (httpResponseCode == HttpURLConnection.HTTP_ACCEPTED) {
+            if (httpResponseCode == HttpURLConnection.HTTP_OK) {
                 inputStream = httpURLConnection.getInputStream();
                 topicList = new LinkedList<>();
-                serverListener.success();
-                JSONArray response = new JSONArray(IOUtil.getString(inputStream));
-                for (int i = 0; i < response.length(); i++) {
-                    JSONObject object = response.getJSONObject(i);
-                    Topic topic = Topic.Builder
-                            .create(object.getString(FieldJSONObject.id.name())
-                                    , object.getString(FieldJSONObject.userId.name()))
-                            .addTopic(object.getString(FieldJSONObject.topic.name()))
-                            .addTimestamp(object.getString(FieldJSONObject.timestamp.name()))
-                            .build();
-                    topicList.add(topic);
-                }
             }
-            httpResponseMessage = httpURLConnection.getResponseMessage();
-            Log.d(TAG, "Result from server :" + httpResponseMessage);
-        } catch (IOException ioe) {
-            Log.d(TAG, "Error open connection");
-            serverListener.failure();
-            ioe.printStackTrace();
+            JSONArray response = new JSONArray(IOUtil.getString(inputStream));
+            for (int i = 0; i < response.length(); i++) {
+                JSONObject object = response.getJSONObject(i);
+                Topic topic = Topic.Builder
+                        .create(object.getString(FieldJSONObject.id.name())
+                                , object.getString(FieldJSONObject.userId.name()))
+                        .addTopic(object.getString(FieldJSONObject.topic.name()))
+                        .addTimestamp(object.getString(FieldJSONObject.timestamp.name()))
+                        .build();
+                topicList.add(topic);
+            }
         } catch (JSONException json) {
-            Log.d(TAG, "Error JSON");
-            serverListener.failure();
-            json.printStackTrace();
+            Topic topic = Topic.Builder.create("null", "null")
+                    .addTopic("null")
+                    .addTimestamp("null")
+                    .build();
+            topicList = new LinkedList<>();
+            topicList.add(topic);
         } finally {
             if (httpURLConnection != null) {
                 httpURLConnection.disconnect();
@@ -109,12 +103,11 @@ public class CustomServerManagement implements ServerMethod {
      *
      * @param topic
      * @param token
-     * @param serverListener
      * @return
      */
     @Override
-    public boolean unsubscribeFromTopics(List<String> topic, String token, ServerListener serverListener) {
-        return postAndDeleteRequest(topic, token, HttpMethod.DELETE, serverListener);
+    public boolean deleteTopics(List<String> topic, String token) throws IOException {
+        return postAndDeleteRequest(topic, token, HttpMethod.DELETE);
     }
 
 
@@ -122,10 +115,10 @@ public class CustomServerManagement implements ServerMethod {
      * @param topicsList
      * @param token
      * @param method
-     * @param serverListener
      * @return
      */
-    private boolean postAndDeleteRequest(List<String> topicsList, String token, HttpMethod method, ServerListener serverListener) {
+
+    private boolean postAndDeleteRequest(List<String> topicsList, String token, HttpMethod method) throws IOException {
         int httpResponseCode = -1;
         URL url = null;
         HttpURLConnection httpURLConnection = null;
@@ -148,21 +141,13 @@ public class CustomServerManagement implements ServerMethod {
             httpResponseCode = httpURLConnection.getResponseCode();
             String httpResponseMessage = httpURLConnection.getResponseMessage();
             Log.d(TAG, "Response from Server: " + httpResponseMessage);
-        } catch (IOException ioe) {
-            Log.d(TAG, "Error open connection");
-            serverListener.failure();
-            ioe.printStackTrace();
         } catch (JSONException json) {
-            Log.d(TAG, "Error JSON");
-            serverListener.failure();
-            json.printStackTrace();
+
         } finally {
             if (httpURLConnection != null) {
                 httpURLConnection.disconnect();
             }
         }
-        if (httpResponseCode == HttpURLConnection.HTTP_OK)
-            serverListener.success();
         return httpResponseCode == HttpURLConnection.HTTP_OK;
     }
 

@@ -21,6 +21,7 @@
         <activity android:name=".activity.GetActivity" />
         <activity android:name=".activity.PostActivity" />
         <activity android:name=".activity.DeleteActivity" />
+        <activity android:name=".activity.ManagementServerActivity" />
 
         <service android:name=".CustomFMS">
             <intent-filter>

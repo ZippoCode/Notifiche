@@ -1,7 +1,7 @@
 package it.tesi.prochilo.notifiche.activity;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -13,17 +13,18 @@ import it.tesi.prochilo.notifiche.R;
 import it.tesi.prochilo.notifiche.ServerAsyncTask;
 import it.tesi.prochilo.notifiche.ServerListener;
 
-public class PostActivity extends Activity {
+public class PostActivity extends AppCompatActivity {
 
     Button button;
-    EditText topic1, topic2, topic3, token;
+    EditText topic1, topic2, topic3;
+    String token;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.post_delete_layout);
+        token = getIntent().getStringExtra("token");
         button = (Button) findViewById(R.id.postButton);
-        token = (EditText) findViewById(R.id.postTokenET);
         topic1 = (EditText) findViewById(R.id.postTopicName1);
         topic2 = (EditText) findViewById(R.id.postTopicName2);
         topic3 = (EditText) findViewById(R.id.postTopicName3);
@@ -32,7 +33,6 @@ public class PostActivity extends Activity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String tokenString = (token.getText()).toString();
                 String topicName1 = topic1.getText().toString();
                 String topicName2 = topic2.getText().toString();
                 String topicName3 = topic3.getText().toString();
@@ -40,7 +40,7 @@ public class PostActivity extends Activity {
                 topicsList.add(topicName1);
                 topicsList.add(topicName2);
                 topicsList.add(topicName3);
-                ServerAsyncTask task = new ServerAsyncTask("http://192.168.1.7:8080/topic", new ServerListener() {
+                ServerAsyncTask task = new ServerAsyncTask("http://192.168.1.63:8080/topic", new ServerListener() {
                     @Override
                     public void success() {
                         success.show();
@@ -51,7 +51,7 @@ public class PostActivity extends Activity {
                         insuccess.show();
                     }
                 });
-                task.addTopics(topicsList, tokenString);
+                task.unsubscribeFromTopics(topicsList, token);
             }
         });
     }

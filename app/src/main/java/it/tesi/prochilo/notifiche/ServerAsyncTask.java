@@ -4,6 +4,9 @@ import android.os.AsyncTask;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 
+import org.json.JSONException;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -14,12 +17,12 @@ public class ServerAsyncTask {
     private String token;
     private ServerListener mServerListener;
 
-    public ServerAsyncTask(String url, ServerListener mServerListener) {
+    public ServerAsyncTask(String url, ServerListener serverListener) {
         mCustomServerManagement = new CustomServerManagement(url);
-        this.mServerListener = mServerListener;
+        this.mServerListener = serverListener;
     }
 
-    public boolean addTopics(List<String> topic, String token) {
+    public boolean subscribeToTopics(List<String> topic, String token) {
         PostAsyncTask task = new PostAsyncTask();
         this.token = token;
         boolean response = false;
@@ -49,7 +52,7 @@ public class ServerAsyncTask {
         return response;
     }
 
-    public boolean deleteTopics(List<String> topic, String token) {
+    public boolean unsubscribeFromTopics(List<String> topic, String token) {
         DeleteAsyncTask task = new DeleteAsyncTask();
         this.token = token;
         boolean response = false;
@@ -69,12 +72,13 @@ public class ServerAsyncTask {
         @Override
         protected Boolean doInBackground(List<String>... lists) {
             boolean flag = false;
-            customFMS.subscribeToTopics(lists[0], null, mServerListener);
-            flag = mCustomServerManagement.subscribeToTopics(lists[0], token, mServerListener);
-            if (flag == true) {
-                mServerListener.success();
-            } else {
+            try {
+                customFMS.postTopics(lists[0], null);
+                flag = mCustomServerManagement.postTopics(lists[0], token);
+            } catch (IOException ioe) {
                 mServerListener.failure();
+            } finally {
+                mServerListener.success();
             }
             return flag;
         }
@@ -84,8 +88,14 @@ public class ServerAsyncTask {
     private class GetAsyncTask extends AsyncTask<String, Void, List<Topic>> {
         @Override
         protected List<Topic> doInBackground(String... strings) {
-            List<Topic> topics = mCustomServerManagement.getTopics(token, mServerListener);
-            System.out.println(customFMS.getTopics(FirebaseInstanceId.getInstance().getToken(), mServerListener));
+            List<Topic> topics = null;
+            try {
+                topics = mCustomServerManagement.getTopics(token);
+            } catch (IOException ioe) {
+                mServerListener.failure();
+            } finally {
+                mServerListener.success();
+            }
             return topics;
         }
     }
@@ -95,10 +105,17 @@ public class ServerAsyncTask {
         @Override
         protected Boolean doInBackground(List<String>... lists) {
             boolean flag = false;
-            customFMS.unsubscribeFromTopics(lists[0], null, mServerListener);
-            flag = mCustomServerManagement.unsubscribeFromTopics(lists[0], token, mServerListener);
+            try {
+                customFMS.deleteTopics(lists[0], null);
+                flag = mCustomServerManagement.deleteTopics(lists[0], token);
+            } catch (IOException ioe) {
+                mServerListener.failure();
+            } finally {
+                mServerListener.success();
+            }
             return flag;
         }
+
     }
 }
 

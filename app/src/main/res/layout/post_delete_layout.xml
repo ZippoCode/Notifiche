@@ -7,14 +7,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
-        android:text="Token"
-        android:ems="10"
-        android:id="@+id/postTokenET" />
-
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="textPersonName"
         android:text="Topic name"
         android:ems="10"
         android:id="@+id/postTopicName1" />
