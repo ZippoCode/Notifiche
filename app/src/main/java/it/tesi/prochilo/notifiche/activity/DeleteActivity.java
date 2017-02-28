@@ -41,7 +41,8 @@ public class DeleteActivity extends AppCompatActivity {
                 topicsList.add(topicName1);
                 topicsList.add(topicName2);
                 topicsList.add(topicName3);
-                ServerAsyncTask task = new ServerAsyncTask("http://192.168.1.63:8080/topic", new ServerListener() {
+                ServerAsyncTask task = new ServerAsyncTask("http://192.168.1.63:8080/topic");
+                task.setOnServerListener(new ServerListener() {
                     @Override
                     public void success() {
                         success.show();

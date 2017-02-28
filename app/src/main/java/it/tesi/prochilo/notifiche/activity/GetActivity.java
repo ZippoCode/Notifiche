@@ -22,9 +22,11 @@ public class GetActivity extends AppCompatActivity {
         String token = getIntent().getStringExtra("token");
         final Toast success = Toast.makeText(this, "Richiesta accettatta", Toast.LENGTH_LONG);
         final Toast insuccess = Toast.makeText(this, "Richiesta rifiutata", Toast.LENGTH_LONG);
-        ServerAsyncTask task = new ServerAsyncTask("http://192.168.1.63:8080/topic", new ServerListener() {
+        ServerAsyncTask task = new ServerAsyncTask("http://192.168.1.63:8080/topic");
+        task.setOnServerListener(new ServerListener() {
             @Override
-            public void success() {success.show();
+            public void success() {
+                success.show();
             }
 
             @Override
