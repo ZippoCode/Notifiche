@@ -2,7 +2,7 @@ package it.tesi.prochilo.notifiche;
 
 public interface ServerListener {
 
-    void success();
+    void onSuccess();
 
-    void failure();
+    void onFailure();
 }

@@ -6,10 +6,10 @@ public interface ServerInterface {
 
     void setOnServerListener(ServerListener serverListener);
 
-    boolean subscribeToTopics(List<String> topicsList, String token);
+    boolean subscribeToTopics(List<String> topicsList);
 
-    List<Topic> getTopics(String topics);
+    List<Topic> getTopics();
 
-    boolean unsubscribeFromTopics(List<String> topics, String token);
+    boolean unsubscribeFromTopics(List<String> topicsList);
 
 }

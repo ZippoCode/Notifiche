@@ -3,6 +3,7 @@
     package="it.tesi.prochilo.notifiche">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -18,10 +19,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".activity.GetActivity" />
-        <activity android:name=".activity.PostActivity" />
-        <activity android:name=".activity.DeleteActivity" />
-        <activity android:name=".activity.ManagementServerActivity" />
+        <activity android:name=".fragment.ButtonActivity" />
 
         <service android:name=".CustomFMS">
             <intent-filter>

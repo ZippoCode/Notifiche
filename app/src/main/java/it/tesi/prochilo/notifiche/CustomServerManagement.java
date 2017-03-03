@@ -29,7 +29,6 @@ public class CustomServerManagement implements ServerRestMethod {
 
     private static final String TAG = CustomServerManagement.class.getSimpleName();
     private static final String AUTHORIZATION = "Authorization";
-    private static final int timeOut = 10000;
     private String mUrlString = null;
 
     public CustomServerManagement(String urlString) {
@@ -65,6 +64,7 @@ public class CustomServerManagement implements ServerRestMethod {
         httpURLConnection.setRequestMethod(HttpMethod.GET.name());
         httpURLConnection.addRequestProperty("Content-Type", "application/json");
         httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + token);
+        httpURLConnection.connect();
         InputStream inputStream = null;
         try {
             int httpResponseCode = httpURLConnection.getResponseCode();
