@@ -8,10 +8,10 @@ import java.util.List;
 
 public interface ServerRestMethod {
 
-    public boolean postTopics(List<String> topicsList, String token) throws IOException;
+    public boolean postTopics(List<String> topicsList) throws IOException;
 
-    public List<Topic> getTopics(String token) throws IOException;
+    public List<Topic> getTopics() throws IOException;
 
-    public boolean deleteTopics(List<String> topicsList, String token) throws IOException;
+    public boolean deleteTopics(List<String> topicsList) throws IOException;
 
 }

@@ -10,11 +10,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 public class CustomServerManagement implements ServerRestMethod {
 
@@ -32,47 +30,46 @@ public class CustomServerManagement implements ServerRestMethod {
     private static final String TAG = CustomServerManagement.class.getSimpleName();
     private static final String AUTHORIZATION = "Authorization";
     private String mUrlString = null;
-    private final int timeoutConnection = 5000;
+    private final int connectionTimeout = 5000;
+    private final String mToken;
 
-    public CustomServerManagement(String urlString) {
+    public CustomServerManagement(String urlString, final String token) {
         this.mUrlString = urlString;
+        this.mToken = token;
     }
 
     /**
      * Invia e sottoscrive il token ad una lista di topic sul Server Custom
      *
      * @param topicsList
-     * @param token
      * @return True se la richiesta ha avuto successo, altrimenti ritorna false
      */
     @Override
-    public boolean postTopics(List<String> topicsList, String token) throws IOException {
-        return postAndDeleteRequest(topicsList, token, HttpMethod.POST);
+    public boolean postTopics(List<String> topicsList) throws IOException {
+        return postAndDeleteRequest(topicsList, HttpMethod.POST);
     }
 
     /**
      * Ritorna la lista di Topic a cui è sottoscritto il token sul Server Custom
      *
-     * @param token
      * @return La lista dei Topic
      */
     @Override
-    public List<Topic> getTopics(String token) throws IOException {
+    public List<Topic> getTopics() throws IOException {
         List<Topic> topicList = new LinkedList<>();
         String httpResponseMessage = null;
         URL url = null;
         HttpURLConnection httpURLConnection = null;
         url = new URL(mUrlString);
         httpURLConnection = (HttpURLConnection) url.openConnection();
-        httpURLConnection.setConnectTimeout(timeoutConnection);
+        httpURLConnection.setConnectTimeout(connectionTimeout);
         httpURLConnection.setRequestMethod(HttpMethod.GET.name());
         httpURLConnection.addRequestProperty("Content-Type", "application/json");
-        httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + token);
+        httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + mToken);
         if (httpURLConnection != null) {
             InputStream inputStream = null;
             try {
-                int httpResponseCode = httpURLConnection.getResponseCode();
-                if (httpResponseCode == HttpURLConnection.HTTP_OK) {
+                if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
                     inputStream = httpURLConnection.getInputStream();
                     topicList = new LinkedList<>();
                 }
@@ -92,12 +89,9 @@ public class CustomServerManagement implements ServerRestMethod {
                         .addTopic("null")
                         .addTimestamp("null")
                         .build();
-                topicList = new LinkedList<>();
                 topicList.add(topic);
             } finally {
-                if (httpURLConnection != null) {
-                    httpURLConnection.disconnect();
-                }
+                httpURLConnection.disconnect();
             }
         }
         return topicList;
@@ -107,33 +101,31 @@ public class CustomServerManagement implements ServerRestMethod {
      * Elimina i topic a cui è sottoscritto il token
      *
      * @param topic
-     * @param token
      * @return
      */
     @Override
-    public boolean deleteTopics(List<String> topic, String token) throws IOException {
-        return postAndDeleteRequest(topic, token, HttpMethod.DELETE);
+    public boolean deleteTopics(List<String> topic) throws IOException {
+        return postAndDeleteRequest(topic, HttpMethod.DELETE);
     }
 
 
     /**
      * @param topicsList
-     * @param token
      * @param method
      * @return
      */
 
-    private boolean postAndDeleteRequest(List<String> topicsList, String token, HttpMethod method) throws IOException {
+    private boolean postAndDeleteRequest(List<String> topicsList, HttpMethod method) throws IOException {
         int httpResponseCode = -1;
         URL url = null;
         HttpURLConnection httpURLConnection = null;
         try {
             url = new URL(mUrlString);
             httpURLConnection = (HttpURLConnection) url.openConnection();
-            httpURLConnection.setConnectTimeout(timeoutConnection);
+            httpURLConnection.setConnectTimeout(connectionTimeout);
             httpURLConnection.setRequestMethod(method.name());
             httpURLConnection.addRequestProperty("Content-Type", "application/json");
-            httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + token);
+            httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + mToken);
             httpURLConnection.setDoOutput(true);
             if (httpURLConnection != null) {
                 OutputStream outputStream = httpURLConnection.getOutputStream();

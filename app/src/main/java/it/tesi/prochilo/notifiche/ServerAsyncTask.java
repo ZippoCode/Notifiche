@@ -30,7 +30,7 @@ public class ServerAsyncTask implements ServerInterface {
      * @param token L'identificativo dell'utente
      */
     public ServerAsyncTask(String url, String token) {
-        mCustomServerManagement = new CustomServerManagement(url);
+        mCustomServerManagement = new CustomServerManagement(url, token);
         mCustomFMS = new CustomFMS("");
         this.mToken = token;
     }
@@ -113,8 +113,8 @@ public class ServerAsyncTask implements ServerInterface {
         protected Boolean doInBackground(List<String>... lists) {
             boolean flag = false;
             try {
-                mCustomFMS.postTopics(lists[0], null);
-                flag = mCustomServerManagement.postTopics(lists[0], mToken);
+                mCustomFMS.postTopics(lists[0]);
+                flag = mCustomServerManagement.postTopics(lists[0]);
             } catch (IOException ioe) {
                 mServerListener.onFailure();
             } finally {
@@ -130,8 +130,8 @@ public class ServerAsyncTask implements ServerInterface {
         protected List<Topic> doInBackground(String... strings) {
             List<Topic> topics = new LinkedList<>();
             try {
-                topics = mCustomServerManagement.getTopics(mToken);
-                System.out.println(mCustomFMS.getTopics(FirebaseInstanceId.getInstance().getToken()));
+                topics = mCustomServerManagement.getTopics();
+                System.out.println(mCustomFMS.getTopics());
             } catch (IOException ioe) {
                 mServerListener.onFailure();
             } finally {
@@ -147,8 +147,8 @@ public class ServerAsyncTask implements ServerInterface {
         protected Boolean doInBackground(List<String>... lists) {
             boolean flag = false;
             try {
-                mCustomFMS.deleteTopics(lists[0], null);
-                flag = mCustomServerManagement.deleteTopics(lists[0], mToken);
+                mCustomFMS.deleteTopics(lists[0]);
+                flag = mCustomServerManagement.deleteTopics(lists[0]);
             } catch (IOException ioe) {
                 mServerListener.onFailure();
             } finally {
