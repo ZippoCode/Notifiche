@@ -10,7 +10,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import it.tesi.prochilo.notifiche.R;
@@ -52,9 +54,38 @@ public class GetFragment extends Fragment {
     }
 
     private BaseAdapter getCustomAdapter() {
-        final ArrayAdapter<Topic> adapter = new ArrayAdapter<Topic>(
-                getContext(), R.layout.topic_layout, R.id.row_text,
-                topicsList);
+        final BaseAdapter adapter = new BaseAdapter() {
+            @Override
+            public int getCount() {
+                return topicsList.size();
+            }
+
+            @Override
+            public Topic getItem(int i) {
+                return topicsList.get(i);
+            }
+
+            @Override
+            public long getItemId(int i) {
+                return i;
+            }
+
+            @Override
+            public View getView(int i, View view, ViewGroup viewGroup) {
+                if (view == null) {
+                    view = LayoutInflater.from(getContext())
+                            .inflate(R.layout.topic_layout, null);
+                }
+                /** Da decommentare se si vogliono visualizzare tutti i componenti
+                 ((TextView) view.findViewById(R.id.id)).setText(topic.id);
+                 ((TextView) view.findViewById(R.id.userId)).setText(topic.userId);
+                 ((TextView) view.findViewById(R.id.topic_name)).setText(topic.topic);
+                 ((TextView) view.findViewById(R.id.timestamp)).setText(topic.timestamp);
+                 **/
+                ((TextView) view.findViewById(R.id.topic_name)).setText(getItem(i).topic);
+                return view;
+            }
+        };
         return adapter;
     }
 }

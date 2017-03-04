@@ -5,6 +5,8 @@ import android.os.AsyncTask;
 import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -73,7 +75,7 @@ public class ServerAsyncTask implements ServerInterface {
     public List<Topic> getTopics() {
         GetAsyncTask task = new GetAsyncTask();
         task.execute(mToken);
-        List<Topic> response = null;
+        List<Topic> response = new LinkedList<>();
         try {
             response = task.get();
         } catch (ExecutionException ee) {
@@ -126,12 +128,11 @@ public class ServerAsyncTask implements ServerInterface {
     private class GetAsyncTask extends AsyncTask<String, Void, List<Topic>> {
         @Override
         protected List<Topic> doInBackground(String... strings) {
-            List<Topic> topics = null;
+            List<Topic> topics = new LinkedList<>();
             try {
                 topics = mCustomServerManagement.getTopics(mToken);
                 System.out.println(mCustomFMS.getTopics(FirebaseInstanceId.getInstance().getToken()));
             } catch (IOException ioe) {
-                ioe.printStackTrace();
                 mServerListener.onFailure();
             } finally {
                 mServerListener.onSuccess();

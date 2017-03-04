@@ -10,9 +10,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 public class CustomServerManagement implements ServerRestMethod {
 
@@ -30,6 +32,7 @@ public class CustomServerManagement implements ServerRestMethod {
     private static final String TAG = CustomServerManagement.class.getSimpleName();
     private static final String AUTHORIZATION = "Authorization";
     private String mUrlString = null;
+    private final int timeoutConnection = 5000;
 
     public CustomServerManagement(String urlString) {
         this.mUrlString = urlString;
@@ -55,44 +58,46 @@ public class CustomServerManagement implements ServerRestMethod {
      */
     @Override
     public List<Topic> getTopics(String token) throws IOException {
-        List<Topic> topicList = null;
+        List<Topic> topicList = new LinkedList<>();
         String httpResponseMessage = null;
         URL url = null;
         HttpURLConnection httpURLConnection = null;
         url = new URL(mUrlString);
         httpURLConnection = (HttpURLConnection) url.openConnection();
+        httpURLConnection.setConnectTimeout(timeoutConnection);
         httpURLConnection.setRequestMethod(HttpMethod.GET.name());
         httpURLConnection.addRequestProperty("Content-Type", "application/json");
         httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + token);
-        httpURLConnection.connect();
-        InputStream inputStream = null;
-        try {
-            int httpResponseCode = httpURLConnection.getResponseCode();
-            if (httpResponseCode == HttpURLConnection.HTTP_OK) {
-                inputStream = httpURLConnection.getInputStream();
-                topicList = new LinkedList<>();
-            }
-            JSONArray response = new JSONArray(IOUtil.getString(inputStream));
-            for (int i = 0; i < response.length(); i++) {
-                JSONObject object = response.getJSONObject(i);
-                Topic topic = Topic.Builder
-                        .create(object.getString(FieldJSONObject.id.name())
-                                , object.getString(FieldJSONObject.userId.name()))
-                        .addTopic(object.getString(FieldJSONObject.topic.name()))
-                        .addTimestamp(object.getString(FieldJSONObject.timestamp.name()))
+        if (httpURLConnection != null) {
+            InputStream inputStream = null;
+            try {
+                int httpResponseCode = httpURLConnection.getResponseCode();
+                if (httpResponseCode == HttpURLConnection.HTTP_OK) {
+                    inputStream = httpURLConnection.getInputStream();
+                    topicList = new LinkedList<>();
+                }
+                JSONArray response = new JSONArray(IOUtil.getString(inputStream));
+                for (int i = 0; i < response.length(); i++) {
+                    JSONObject object = response.getJSONObject(i);
+                    Topic topic = Topic.Builder
+                            .create(object.getString(FieldJSONObject.id.name())
+                                    , object.getString(FieldJSONObject.userId.name()))
+                            .addTopic(object.getString(FieldJSONObject.topic.name()))
+                            .addTimestamp(object.getString(FieldJSONObject.timestamp.name()))
+                            .build();
+                    topicList.add(topic);
+                }
+            } catch (JSONException json) {
+                Topic topic = Topic.Builder.create("null", "null")
+                        .addTopic("null")
+                        .addTimestamp("null")
                         .build();
+                topicList = new LinkedList<>();
                 topicList.add(topic);
-            }
-        } catch (JSONException json) {
-            Topic topic = Topic.Builder.create("null", "null")
-                    .addTopic("null")
-                    .addTimestamp("null")
-                    .build();
-            topicList = new LinkedList<>();
-            topicList.add(topic);
-        } finally {
-            if (httpURLConnection != null) {
-                httpURLConnection.disconnect();
+            } finally {
+                if (httpURLConnection != null) {
+                    httpURLConnection.disconnect();
+                }
             }
         }
         return topicList;
@@ -125,22 +130,25 @@ public class CustomServerManagement implements ServerRestMethod {
         try {
             url = new URL(mUrlString);
             httpURLConnection = (HttpURLConnection) url.openConnection();
+            httpURLConnection.setConnectTimeout(timeoutConnection);
             httpURLConnection.setRequestMethod(method.name());
             httpURLConnection.addRequestProperty("Content-Type", "application/json");
             httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + token);
             httpURLConnection.setDoOutput(true);
-            OutputStream outputStream = httpURLConnection.getOutputStream();
-            JSONArray jsonArray = new JSONArray();
-            for (int i = 0; i < topicsList.size(); i++) {
-                JSONObject topic = new JSONObject();
-                topic.put("topic", topicsList.get(i));
-                jsonArray.put(topic);
+            if (httpURLConnection != null) {
+                OutputStream outputStream = httpURLConnection.getOutputStream();
+                JSONArray jsonArray = new JSONArray();
+                for (int i = 0; i < topicsList.size(); i++) {
+                    JSONObject topic = new JSONObject();
+                    topic.put("topic", topicsList.get(i));
+                    jsonArray.put(topic);
+                }
+                outputStream.write(jsonArray.toString().getBytes("UTF-8"));
+                outputStream.flush();
+                httpResponseCode = httpURLConnection.getResponseCode();
+                String httpResponseMessage = httpURLConnection.getResponseMessage();
+                Log.d(TAG, "Response from Server: " + httpResponseMessage);
             }
-            outputStream.write(jsonArray.toString().getBytes("UTF-8"));
-            outputStream.flush();
-            httpResponseCode = httpURLConnection.getResponseCode();
-            String httpResponseMessage = httpURLConnection.getResponseMessage();
-            Log.d(TAG, "Response from Server: " + httpResponseMessage);
         } catch (JSONException json) {
 
         } finally {

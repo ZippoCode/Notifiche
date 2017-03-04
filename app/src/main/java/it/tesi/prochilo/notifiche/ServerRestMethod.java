@@ -3,6 +3,7 @@ package it.tesi.prochilo.notifiche;
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.List;
 
 public interface ServerRestMethod {

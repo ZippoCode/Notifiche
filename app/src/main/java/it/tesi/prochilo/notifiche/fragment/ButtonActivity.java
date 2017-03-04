@@ -2,6 +2,7 @@ package it.tesi.prochilo.notifiche.fragment;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -13,7 +14,7 @@ import it.tesi.prochilo.notifiche.Login;
 import it.tesi.prochilo.notifiche.R;
 import it.tesi.prochilo.notifiche.Topic;
 
-public class ButtonActivity extends AppCompatActivity {
+public class ButtonActivity extends FragmentActivity {
 
     private Button inviaTopic, getTopic, deleteTopic;
     private String email, password;

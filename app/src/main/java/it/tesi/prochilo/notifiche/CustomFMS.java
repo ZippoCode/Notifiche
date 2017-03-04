@@ -25,6 +25,7 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
     private String mKey = null;
     private static final String REGULAREXPRESSION = "[a-zA-Z0-9-_.~%]{1,900}";
     private static final Pattern pattern;
+    private final int connectionTimeout = 5000;
 
     static {
         pattern = Pattern.compile(REGULAREXPRESSION);
@@ -79,17 +80,20 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
         HttpURLConnection httpURLConnection = null;
         URL url;
         JSONObject response = null;
-        List<Topic> topicList;
+        List<Topic> topicList = null;
         try {
             url = new URL("https://iid.googleapis.com/iid/info/" + token + "?details=true");
             httpURLConnection = (HttpURLConnection) url.openConnection();
+            httpURLConnection.setConnectTimeout(connectionTimeout);
             httpURLConnection.addRequestProperty("Content-Type", "application/json");
             httpURLConnection.addRequestProperty("Authorization", "key=" + mKey);
             httpURLConnection.setRequestMethod("GET");
             httpURLConnection.connect();
-            InputStream inputStream = httpURLConnection.getInputStream();
-            response = new JSONObject(IOUtil.getString(inputStream));
-            topicList = elaborateTopics(response);
+            if (httpURLConnection != null) {
+                InputStream inputStream = httpURLConnection.getInputStream();
+                response = new JSONObject(IOUtil.getString(inputStream));
+                topicList = elaborateTopics(response);
+            }
         } catch (JSONException jsone) {
             Topic topic = Topic.Builder.create("null", "null")
                     .addTopic("null")
