@@ -13,7 +13,7 @@ import android.widget.EditText;
 import java.util.LinkedList;
 import java.util.List;
 
-import it.tesi.prochilo.notifiche.CustomServerManagement;
+import it.tesi.prochilo.notifiche.server.CustomServerManagement;
 import it.tesi.prochilo.notifiche.R;
 
 public class DeleteFragment extends Fragment {

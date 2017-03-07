@@ -1,10 +1,12 @@
-package it.tesi.prochilo.notifiche;
+package it.tesi.prochilo.notifiche.server;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,35 +15,49 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.regex.Pattern;
+
+import it.tesi.prochilo.notifiche.IOUtil;
+import it.tesi.prochilo.notifiche.ServerRestMethod;
+import it.tesi.prochilo.notifiche.Topic;
 
 public class CustomFMS extends FirebaseMessagingService implements ServerRestMethod {
 
-
+    private static final String TAG = FirebaseMessagingService.class.getCanonicalName();
     private String mKey = null;
     private static final String REGULAREXPRESSION = "[a-zA-Z0-9-_.~%]{1,900}";
     private static final Pattern pattern;
     private final int connectionTimeout = 5000;
     private final String mToken;
+    private static List<Integer> messageId;
+    private static final Random random;
+    private FirebaseMessaging mFirebaseMessaging;
 
     static {
         pattern = Pattern.compile(REGULAREXPRESSION);
+        random = new Random();
+        messageId = new LinkedList<>();
     }
 
     public CustomFMS() {
-        mToken = FirebaseInstanceId.getInstance().getToken();
+        this("");
     }
 
-    /**
-     * @param key
-     */
-    public CustomFMS(final String key) {
+    public CustomFMS(final String token) {
         mKey = "AAAAMtllAlc:APA91bGrqrveOBwyh81ycpsEx-E1r9WJ4nAIdF6d6dvRFjz1NZyTc__z_N5DXE2RhVjlC3vkBwuYehnSewWpIJU9uf-Velr0qyOUS6FPzuE9Y-FnhNxY3_9qpkjaQ89HF77mUcIui1Pm";
         this.mToken = FirebaseInstanceId.getInstance().getToken();
-        //this.mKey = key;
+        mFirebaseMessaging = FirebaseMessaging.getInstance();
+        mFirebaseMessaging.send(new RemoteMessage.Builder("218395640407" + "@gcm.googleapis.com")
+                .setMessageId(Integer.toString(getMessageId()))
+                .setMessageType(".registraId")
+                .addData("token", token)
+                .build());
     }
 
     /**
@@ -52,21 +68,14 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
      */
     @Override
     public boolean postTopics(List<String> topicsList) throws IOException {
+        Map<String, String> map = new HashMap<>();
         for (int i = 0; i < topicsList.size(); i++) {
-            String topic = topicsList.get(i);
-            if (topic != null && topic.startsWith("/topics/")) {
-                Log.w("FirebaseMessaging",
-                        "Format /topics/topics-name is deprecated. Only 'topic-name' should be used in subscribe Topics ");
-                topic = topic.substring("/topics/".length());
+            if (Pattern.matches(REGULAREXPRESSION, topicsList.get(i))) {
+                mFirebaseMessaging.subscribeToTopic(topicsList.get(i));
+                map.put("topic" + i, topicsList.get(i));
             }
-            if (topic == null || !pattern.matcher(topic).matches()) {
-                throw new IllegalArgumentException("Valore errato.");
-            }
-            FirebaseInstanceId instance = FirebaseInstanceId.getInstance();
-            String valueOf2 = String.valueOf("S!");
-            String valueOf3 = String.valueOf(topic);
-            instance.zzjt(valueOf3.length() != 0 ? valueOf2.concat(valueOf3) : new String(valueOf2));
         }
+        updateTopicsToCssXMPP(map);
         return true;
     }
 
@@ -117,10 +126,14 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
      */
     @Override
     public boolean deleteTopics(List<String> topicsList) throws IOException {
+        Map<String, String> map = new HashMap<>();
         for (int i = 0; i < topicsList.size(); i++) {
-            if (Pattern.matches(REGULAREXPRESSION, topicsList.get(i)))
-                FirebaseMessaging.getInstance().unsubscribeFromTopic(topicsList.get(i));
+            if (Pattern.matches(REGULAREXPRESSION, topicsList.get(i))) {
+                mFirebaseMessaging.unsubscribeFromTopic(topicsList.get(i));
+                map.put("topic" + i, topicsList.get(i));
+            }
         }
+        updateTopicsToCssXMPP(map);
         return true;
     }
 
@@ -149,4 +162,51 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
         return topicsList;
     }
 
+    private void updateTopicsToCssXMPP(Map<String, String> map) {
+        mFirebaseMessaging.send(new RemoteMessage.Builder("218395640407" + "@gcm.googleapis.com")
+                .setMessageType(".messaggio")
+                .setMessageId(Integer.toString(getMessageId()))
+                .setData(map)
+                .addData("token", "token_admin")
+                .addData("message_operation", "subscribe")
+                .build());
+    }
+
+    @Override
+    public void onMessageReceived(RemoteMessage remoteMessage) {
+        Log.d(TAG, "From: " + remoteMessage.getFrom());
+        if (remoteMessage.getData().size() > 0) {
+            Log.d(TAG, "Message data payload: " + remoteMessage.getData());
+            Map<String, String> payload = remoteMessage.getData();
+            payloadElaborate(payload);
+        }
+        if (remoteMessage.getNotification() != null) {
+            Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
+        }
+    }
+
+    @NonNull
+    private Integer getMessageId() {
+        int id;
+        while (messageId.contains((id = random.nextInt()))) {
+        }
+        messageId.add(id);
+        return id;
+    }
+
+    private void payloadElaborate(Map<String, String> payload) {
+        String operation = payload.get("message_operation");
+        LinkedList<String> keys = new LinkedList<>(payload.keySet());
+        LinkedList<String> topicsList = new LinkedList<>();
+        for (String key : keys) {
+            if (key.contains("topic"))
+                topicsList.add(payload.get(key));
+        }
+        for (String topic : topicsList) {
+            if (operation.equals("subscribe"))
+                mFirebaseMessaging.subscribeToTopic(topic);
+            else
+                mFirebaseMessaging.unsubscribeFromTopic(topic);
+        }
+    }
 }

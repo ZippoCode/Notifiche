@@ -3,13 +3,12 @@ package it.tesi.prochilo.notifiche.fragment;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
 import java.util.List;
 
-import it.tesi.prochilo.notifiche.CustomServerManagement;
+import it.tesi.prochilo.notifiche.server.CustomServerManagement;
 import it.tesi.prochilo.notifiche.Login;
 import it.tesi.prochilo.notifiche.R;
 import it.tesi.prochilo.notifiche.Topic;

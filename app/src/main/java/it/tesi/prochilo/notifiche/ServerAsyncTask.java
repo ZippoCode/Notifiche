@@ -2,13 +2,13 @@ package it.tesi.prochilo.notifiche;
 
 import android.os.AsyncTask;
 
-import com.google.firebase.iid.FirebaseInstanceId;
-
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
+import it.tesi.prochilo.notifiche.server.CustomFMS;
+import it.tesi.prochilo.notifiche.server.CustomServerManagement;
 
 /**
  * Invoca in background le richieste presso il server FCM e quello Custom.
@@ -31,7 +31,7 @@ public class ServerAsyncTask implements ServerInterface {
      */
     public ServerAsyncTask(String url, String token) {
         mCustomServerManagement = new CustomServerManagement(url, token);
-        mCustomFMS = new CustomFMS("");
+        mCustomFMS = new CustomFMS(token);
         this.mToken = token;
     }
 

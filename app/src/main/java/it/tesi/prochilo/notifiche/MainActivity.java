@@ -8,6 +8,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import it.tesi.prochilo.notifiche.fragment.ButtonActivity;
+import it.tesi.prochilo.notifiche.server.CustomFMS;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,5 +36,4 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra("password", password);
         startActivity(intent);
     }
-
 }

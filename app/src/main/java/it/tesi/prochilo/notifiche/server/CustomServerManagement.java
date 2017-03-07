@@ -1,4 +1,4 @@
-package it.tesi.prochilo.notifiche;
+package it.tesi.prochilo.notifiche.server;
 
 import android.util.Log;
 
@@ -13,6 +13,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
+
+import it.tesi.prochilo.notifiche.IOUtil;
+import it.tesi.prochilo.notifiche.ServerRestMethod;
+import it.tesi.prochilo.notifiche.Topic;
 
 public class CustomServerManagement implements ServerRestMethod {
 
