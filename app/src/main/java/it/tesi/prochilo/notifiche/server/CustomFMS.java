@@ -24,6 +24,7 @@ import java.util.Random;
 import java.util.regex.Pattern;
 
 import it.tesi.prochilo.notifiche.IOUtil;
+import it.tesi.prochilo.notifiche.ServerListener;
 import it.tesi.prochilo.notifiche.ServerRestMethod;
 import it.tesi.prochilo.notifiche.Topic;
 
@@ -38,6 +39,8 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
     private static List<Integer> messageId;
     private static final Random random;
     private FirebaseMessaging mFirebaseMessaging;
+    private String projectId = "77244763443";
+    private ServerListener mServerListener;
 
     static {
         pattern = Pattern.compile(REGULAREXPRESSION);
@@ -50,14 +53,19 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
     }
 
     public CustomFMS(final String token) {
-        mKey = "AAAAMtllAlc:APA91bGrqrveOBwyh81ycpsEx-E1r9WJ4nAIdF6d6dvRFjz1NZyTc__z_N5DXE2RhVjlC3vkBwuYehnSewWpIJU9uf-Velr0qyOUS6FPzuE9Y-FnhNxY3_9qpkjaQ89HF77mUcIui1Pm";
-        this.mToken = FirebaseInstanceId.getInstance().getToken();
+        mKey = "AAAAEfwljTM:APA91bHTOLOrXIKxIOjlUqSv6ieyMUotKmwmyYmmWfASjkPsW34udQjM3gtRQHiDJuH455iY8tM0CHeUoaIWy4hHNy3nY5e_bnO5xKO4sWvueLGUTiCVCX8vFIPpdM4Dqbn3tfOXrld8";
+        this.mToken = token;
         mFirebaseMessaging = FirebaseMessaging.getInstance();
-        mFirebaseMessaging.send(new RemoteMessage.Builder("218395640407" + "@gcm.googleapis.com")
+        mFirebaseMessaging.send(new RemoteMessage.Builder(projectId + "@gcm.googleapis.com")
                 .setMessageId(Integer.toString(getMessageId()))
                 .setMessageType(".registraId")
-                .addData("token", token)
+                .addData("token", mToken)
                 .build());
+    }
+
+    @Override
+    public void setOnServerListener(ServerListener serverListener) {
+        this.mServerListener = serverListener;
     }
 
     /**
@@ -67,7 +75,7 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
      * @return True se l'operazione è andata a buon fine altrimenti ritorna false
      */
     @Override
-    public boolean postTopics(List<String> topicsList) throws IOException {
+    public boolean postTopics(List<String> topicsList) {
         Map<String, String> map = new HashMap<>();
         for (int i = 0; i < topicsList.size(); i++) {
             if (Pattern.matches(REGULAREXPRESSION, topicsList.get(i))) {
@@ -76,6 +84,7 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
             }
         }
         updateTopicsToCssXMPP(map);
+        mServerListener.onSuccess();
         return true;
     }
 
@@ -85,13 +94,14 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
      * @return La lista dei Topic
      */
     @Override
-    public List<Topic> getTopics() throws IOException {
+    public List<Topic> getTopics() {
         HttpURLConnection httpURLConnection = null;
         URL url;
         JSONObject response = null;
         List<Topic> topicList = null;
+        boolean flag = true;
         try {
-            url = new URL("https://iid.googleapis.com/iid/info/" + mToken + "?details=true");
+            url = new URL("https://iid.googleapis.com/iid/info/" + FirebaseInstanceId.getInstance().getToken() + "?details=true");
             httpURLConnection = (HttpURLConnection) url.openConnection();
             httpURLConnection.setConnectTimeout(connectionTimeout);
             httpURLConnection.addRequestProperty("Content-Type", "application/json");
@@ -104,17 +114,26 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
                 topicList = topicsElaborator(response);
             }
         } catch (JSONException jsone) {
+            jsone.printStackTrace();
             Topic topic = Topic.Builder.create("null", "null")
                     .addTopic("null")
                     .addTimestamp("null")
                     .build();
             topicList = new LinkedList<>();
             topicList.add(topic);
+            flag = false;
+            mServerListener.onFailure();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            flag = false;
+            mServerListener.onFailure();
         } finally {
             if (httpURLConnection != null) {
                 httpURLConnection.disconnect();
             }
         }
+        if (flag)
+            mServerListener.onSuccess();
         return topicList;
     }
 
@@ -125,7 +144,7 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
      * @return True se l'operazione è andata a buon fine, altrimenti false
      */
     @Override
-    public boolean deleteTopics(List<String> topicsList) throws IOException {
+    public boolean deleteTopics(List<String> topicsList) {
         Map<String, String> map = new HashMap<>();
         for (int i = 0; i < topicsList.size(); i++) {
             if (Pattern.matches(REGULAREXPRESSION, topicsList.get(i))) {
@@ -134,6 +153,7 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
             }
         }
         updateTopicsToCssXMPP(map);
+        mServerListener.onSuccess();
         return true;
     }
 
@@ -143,31 +163,28 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
      * @param jsonObject Deve contenere la risposta del server FCM
      * @return La lista di topic
      */
-    private List<Topic> topicsElaborator(JSONObject jsonObject) {
+    private List<Topic> topicsElaborator(JSONObject jsonObject) throws JSONException {
         List<Topic> topicsList = new LinkedList<>();
-        try {
-            JSONObject topics = (jsonObject.getJSONObject("rel")).getJSONObject("topics");
-            Iterator<String> topicsIterator = topics.keys();
-            while (topicsIterator.hasNext()) {
-                String topicName = topicsIterator.next();
-                JSONObject topicInfo = topics.getJSONObject(topicName);
-                Topic topic = Topic.Builder.create("", "")
-                        .addTopic(topicName)
-                        .addTimestamp(topicInfo.getString("addDate"))
-                        .build();
-                topicsList.add(topic);
-            }
-        } catch (JSONException jsone) {
+        JSONObject topics = (jsonObject.getJSONObject("rel")).getJSONObject("topics");
+        Iterator<String> topicsIterator = topics.keys();
+        while (topicsIterator.hasNext()) {
+            String topicName = topicsIterator.next();
+            JSONObject topicInfo = topics.getJSONObject(topicName);
+            Topic topic = Topic.Builder.create("", "")
+                    .addTopic(topicName)
+                    .addTimestamp(topicInfo.getString("addDate"))
+                    .build();
+            topicsList.add(topic);
         }
         return topicsList;
     }
 
     private void updateTopicsToCssXMPP(Map<String, String> map) {
-        mFirebaseMessaging.send(new RemoteMessage.Builder("218395640407" + "@gcm.googleapis.com")
+        mFirebaseMessaging.send(new RemoteMessage.Builder(projectId + "@gcm.googleapis.com")
                 .setMessageType(".messaggio")
                 .setMessageId(Integer.toString(getMessageId()))
                 .setData(map)
-                .addData("token", "token_admin")
+                .addData("token", mToken)
                 .addData("message_operation", "subscribe")
                 .build());
     }

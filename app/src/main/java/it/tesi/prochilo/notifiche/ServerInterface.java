@@ -4,7 +4,9 @@ import java.util.List;
 
 public interface ServerInterface {
 
-    void setOnServerListener(ServerListener serverListener);
+    enum ServerType {SERVERCUSTOM, SERVERFIREBASE}
+
+    void setServerType(ServerType server);
 
     boolean subscribeToTopics(List<String> topicsList);
 

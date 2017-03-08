@@ -1,17 +1,15 @@
 package it.tesi.prochilo.notifiche;
 
-import org.json.JSONException;
-
-import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.util.List;
 
 public interface ServerRestMethod {
 
-    public boolean postTopics(List<String> topicsList) throws IOException;
+    void setOnServerListener(ServerListener serverListener);
 
-    public List<Topic> getTopics() throws IOException;
+    boolean postTopics(List<String> topicsList);
 
-    public boolean deleteTopics(List<String> topicsList) throws IOException;
+    List<Topic> getTopics();
+
+    boolean deleteTopics(List<String> topicsList);
 
 }

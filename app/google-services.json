@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "218395640407",
-    "firebase_url": "https://tesi-900db.firebaseio.com",
-    "project_id": "tesi-900db",
-    "storage_bucket": "tesi-900db.appspot.com"
+    "project_number": "77244763443",
+    "firebase_url": "https://fir-tesi-6f1e4.firebaseio.com",
+    "project_id": "fir-tesi-6f1e4",
+    "storage_bucket": "fir-tesi-6f1e4.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:218395640407:android:d7811e0e67727798",
+        "mobilesdk_app_id": "1:77244763443:android:d7811e0e67727798",
         "android_client_info": {
           "package_name": "it.tesi.prochilo.notifiche"
         }
       },
       "oauth_client": [
         {
-          "client_id": "218395640407-2pcp25itotgd7i0dj1pbh7e1v875csn3.apps.googleusercontent.com",
+          "client_id": "77244763443-0pl5tsrr867s9rbhbovb0ppu790ojs9p.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "it.tesi.prochilo.notifiche",
@@ -23,21 +23,13 @@
           }
         },
         {
-          "client_id": "218395640407-s5l8enbgtkum68h8pbj7td5c5lgqhp66.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "it.tesi.prochilo.notifiche",
-            "certificate_hash": "68c7da0d12a54cfb439c1c1f6f48bf65060c5de6"
-          }
-        },
-        {
-          "client_id": "218395640407-9ti0bflu8ngr9di2ms2jdjeaf9fq4rsp.apps.googleusercontent.com",
+          "client_id": "77244763443-3oe5g7qv2d2p33vsk4in6l3bd1oc1bkn.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCdC5yEb_IFtVN0OK4Ww2UOk0v_KoeNxWc"
+          "current_key": "AIzaSyAl9EeuBvT1KCM7Xksyqg_yvOj6faWPE2c"
         }
       ],
       "services": {
@@ -48,7 +40,7 @@
           "status": 2,
           "other_platform_oauth_client": [
             {
-              "client_id": "218395640407-9ti0bflu8ngr9di2ms2jdjeaf9fq4rsp.apps.googleusercontent.com",
+              "client_id": "77244763443-3oe5g7qv2d2p33vsk4in6l3bd1oc1bkn.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

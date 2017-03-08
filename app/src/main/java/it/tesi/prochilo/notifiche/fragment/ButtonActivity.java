@@ -8,8 +8,9 @@ import android.widget.Button;
 
 import java.util.List;
 
-import it.tesi.prochilo.notifiche.server.CustomServerManagement;
 import it.tesi.prochilo.notifiche.Login;
+import it.tesi.prochilo.notifiche.ServerInterface;
+import it.tesi.prochilo.notifiche.server.CustomServerManagement;
 import it.tesi.prochilo.notifiche.R;
 import it.tesi.prochilo.notifiche.Topic;
 
@@ -17,7 +18,7 @@ public class ButtonActivity extends FragmentActivity {
 
     private Button inviaTopic, getTopic, deleteTopic;
     private String email, password;
-    private Login login;
+    private Login server;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -25,7 +26,8 @@ public class ButtonActivity extends FragmentActivity {
         setContentView(R.layout.server_layout);
         email = getIntent().getStringExtra("email");
         password = getIntent().getStringExtra("password");
-        login = new Login(email, password);
+        server = new Login(email, password);
+        server.setServerType(ServerInterface.ServerType.SERVERFIREBASE);
         inviaTopic = (Button) findViewById(R.id.invia_topic);
         getTopic = (Button) findViewById(R.id.ricevi_topic);
         deleteTopic = (Button) findViewById(R.id.elimina_topic);
@@ -72,11 +74,11 @@ public class ButtonActivity extends FragmentActivity {
 
     public boolean operation1(List<String> list, CustomServerManagement.HttpMethod httpMethod) {
         if (httpMethod.equals(CustomServerManagement.HttpMethod.POST))
-            return login.subscribeToTopics(list);
-        return login.unsubscribeToTopics(list);
+            return server.subscribeToTopics(list);
+        return server.unsubscribeFromTopics(list);
     }
 
     public List<Topic> operation2() {
-        return login.getTopics();
+        return server.getTopics();
     }
 }
