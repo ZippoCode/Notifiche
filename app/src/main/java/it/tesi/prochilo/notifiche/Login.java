@@ -68,7 +68,7 @@ public class Login implements ServerInterface {
      * @return Ritorna true se l'operazione è andata a buon fine
      */
     @Override
-    public boolean subscribeToTopics(List<String> topicsList) {
+    public  boolean subscribeToTopics(List<String> topicsList) {
         PostAsyncTask task = new PostAsyncTask();
         boolean response = false;
         task.execute(topicsList);

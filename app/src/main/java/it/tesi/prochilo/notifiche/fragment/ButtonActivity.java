@@ -18,7 +18,8 @@ public class ButtonActivity extends FragmentActivity {
 
     private Button inviaTopic, getTopic, deleteTopic;
     private String email, password;
-    private Login server;
+    private Login serverFirebase;
+    private Login serverCustom;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -26,8 +27,10 @@ public class ButtonActivity extends FragmentActivity {
         setContentView(R.layout.server_layout);
         email = getIntent().getStringExtra("email");
         password = getIntent().getStringExtra("password");
-        server = new Login(email, password);
-        server.setServerType(ServerInterface.ServerType.SERVERFIREBASE);
+        serverFirebase = new Login(email, password);
+        serverCustom = new Login(email, password);
+        serverFirebase.setServerType(ServerInterface.ServerType.SERVERFIREBASE);
+        serverCustom.setServerType(ServerInterface.ServerType.SERVERCUSTOM);
         inviaTopic = (Button) findViewById(R.id.invia_topic);
         getTopic = (Button) findViewById(R.id.ricevi_topic);
         deleteTopic = (Button) findViewById(R.id.elimina_topic);
@@ -73,12 +76,18 @@ public class ButtonActivity extends FragmentActivity {
     }
 
     public boolean operation1(List<String> list, CustomServerManagement.HttpMethod httpMethod) {
-        if (httpMethod.equals(CustomServerManagement.HttpMethod.POST))
-            return server.subscribeToTopics(list);
-        return server.unsubscribeFromTopics(list);
+        if (httpMethod.equals(CustomServerManagement.HttpMethod.POST)) {
+            serverCustom.subscribeToTopics(list);
+            serverFirebase.subscribeToTopics(list);
+            return true;
+        }
+        serverCustom.unsubscribeFromTopics(list);
+        serverFirebase.unsubscribeFromTopics(list);
+        return true;
     }
 
     public List<Topic> operation2() {
-        return server.getTopics();
+        serverCustom.getTopics();
+        return serverFirebase.getTopics();
     }
 }

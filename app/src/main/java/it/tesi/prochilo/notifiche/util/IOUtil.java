@@ -1,4 +1,4 @@
-package it.tesi.prochilo.notifiche;
+package it.tesi.prochilo.notifiche.util;
 
 import android.app.Activity;
 import android.content.Context;

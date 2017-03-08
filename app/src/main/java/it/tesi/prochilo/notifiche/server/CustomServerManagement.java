@@ -14,7 +14,7 @@ import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 
-import it.tesi.prochilo.notifiche.IOUtil;
+import it.tesi.prochilo.notifiche.util.IOUtil;
 import it.tesi.prochilo.notifiche.ServerListener;
 import it.tesi.prochilo.notifiche.ServerRestMethod;
 import it.tesi.prochilo.notifiche.Topic;

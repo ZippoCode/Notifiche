@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.regex.Pattern;
 
-import it.tesi.prochilo.notifiche.IOUtil;
+import it.tesi.prochilo.notifiche.util.IOUtil;
 import it.tesi.prochilo.notifiche.ServerListener;
 import it.tesi.prochilo.notifiche.ServerRestMethod;
 import it.tesi.prochilo.notifiche.Topic;
@@ -77,14 +77,16 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
     @Override
     public boolean postTopics(List<String> topicsList) {
         Map<String, String> map = new HashMap<>();
-        for (int i = 0; i < topicsList.size(); i++) {
-            if (Pattern.matches(REGULAREXPRESSION, topicsList.get(i))) {
-                mFirebaseMessaging.subscribeToTopic(topicsList.get(i));
-                map.put("topic" + i, topicsList.get(i));
+        synchronized (map) {
+            for (int i = 0; i < topicsList.size(); i++) {
+                if (Pattern.matches(REGULAREXPRESSION, topicsList.get(i))) {
+                    mFirebaseMessaging.subscribeToTopic(topicsList.get(i));
+                    map.put("topic" + i, topicsList.get(i));
+                }
             }
+            updateTopicsToCssXMPP(map,"subscribe");
+            mServerListener.onSuccess();
         }
-        updateTopicsToCssXMPP(map);
-        mServerListener.onSuccess();
         return true;
     }
 
@@ -98,42 +100,44 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
         HttpURLConnection httpURLConnection = null;
         URL url;
         JSONObject response = null;
-        List<Topic> topicList = null;
+        List<Topic> topicList = new LinkedList<>();
         boolean flag = true;
-        try {
-            url = new URL("https://iid.googleapis.com/iid/info/" + FirebaseInstanceId.getInstance().getToken() + "?details=true");
-            httpURLConnection = (HttpURLConnection) url.openConnection();
-            httpURLConnection.setConnectTimeout(connectionTimeout);
-            httpURLConnection.addRequestProperty("Content-Type", "application/json");
-            httpURLConnection.addRequestProperty("Authorization", "key=" + mKey);
-            httpURLConnection.setRequestMethod("GET");
-            httpURLConnection.connect();
-            if (httpURLConnection != null) {
-                InputStream inputStream = httpURLConnection.getInputStream();
-                response = new JSONObject(IOUtil.getString(inputStream));
-                topicList = topicsElaborator(response);
+        synchronized (topicList) {
+            try {
+                url = new URL("https://iid.googleapis.com/iid/info/" + FirebaseInstanceId.getInstance().getToken() + "?details=true");
+                httpURLConnection = (HttpURLConnection) url.openConnection();
+                httpURLConnection.setConnectTimeout(connectionTimeout);
+                httpURLConnection.addRequestProperty("Content-Type", "application/json");
+                httpURLConnection.addRequestProperty("Authorization", "key=" + mKey);
+                httpURLConnection.setRequestMethod("GET");
+                httpURLConnection.connect();
+                if (httpURLConnection != null) {
+                    InputStream inputStream = httpURLConnection.getInputStream();
+                    response = new JSONObject(IOUtil.getString(inputStream));
+                    topicList = topicsElaborator(response);
+                }
+            } catch (JSONException jsone) {
+                jsone.printStackTrace();
+                Topic topic = Topic.Builder.create("null", "null")
+                        .addTopic("null")
+                        .addTimestamp("null")
+                        .build();
+                topicList = new LinkedList<>();
+                topicList.add(topic);
+                flag = false;
+                mServerListener.onFailure();
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+                flag = false;
+                mServerListener.onFailure();
+            } finally {
+                if (httpURLConnection != null) {
+                    httpURLConnection.disconnect();
+                }
             }
-        } catch (JSONException jsone) {
-            jsone.printStackTrace();
-            Topic topic = Topic.Builder.create("null", "null")
-                    .addTopic("null")
-                    .addTimestamp("null")
-                    .build();
-            topicList = new LinkedList<>();
-            topicList.add(topic);
-            flag = false;
-            mServerListener.onFailure();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            flag = false;
-            mServerListener.onFailure();
-        } finally {
-            if (httpURLConnection != null) {
-                httpURLConnection.disconnect();
-            }
+            if (flag)
+                mServerListener.onSuccess();
         }
-        if (flag)
-            mServerListener.onSuccess();
         return topicList;
     }
 
@@ -146,14 +150,16 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
     @Override
     public boolean deleteTopics(List<String> topicsList) {
         Map<String, String> map = new HashMap<>();
-        for (int i = 0; i < topicsList.size(); i++) {
-            if (Pattern.matches(REGULAREXPRESSION, topicsList.get(i))) {
-                mFirebaseMessaging.unsubscribeFromTopic(topicsList.get(i));
-                map.put("topic" + i, topicsList.get(i));
+        synchronized (map) {
+            for (int i = 0; i < topicsList.size(); i++) {
+                if (Pattern.matches(REGULAREXPRESSION, topicsList.get(i))) {
+                    mFirebaseMessaging.unsubscribeFromTopic(topicsList.get(i));
+                    map.put("topic" + i, topicsList.get(i));
+                }
             }
+            updateTopicsToCssXMPP(map, "unsubscribe");
+            mServerListener.onSuccess();
         }
-        updateTopicsToCssXMPP(map);
-        mServerListener.onSuccess();
         return true;
     }
 
@@ -167,26 +173,30 @@ public class CustomFMS extends FirebaseMessagingService implements ServerRestMet
         List<Topic> topicsList = new LinkedList<>();
         JSONObject topics = (jsonObject.getJSONObject("rel")).getJSONObject("topics");
         Iterator<String> topicsIterator = topics.keys();
-        while (topicsIterator.hasNext()) {
-            String topicName = topicsIterator.next();
-            JSONObject topicInfo = topics.getJSONObject(topicName);
-            Topic topic = Topic.Builder.create("", "")
-                    .addTopic(topicName)
-                    .addTimestamp(topicInfo.getString("addDate"))
-                    .build();
-            topicsList.add(topic);
+        synchronized (topicsIterator) {
+            while (topicsIterator.hasNext()) {
+                String topicName = topicsIterator.next();
+                JSONObject topicInfo = topics.getJSONObject(topicName);
+                Topic topic = Topic.Builder.create("", "")
+                        .addTopic(topicName)
+                        .addTimestamp(topicInfo.getString("addDate"))
+                        .build();
+                topicsList.add(topic);
+            }
         }
         return topicsList;
     }
 
-    private void updateTopicsToCssXMPP(Map<String, String> map) {
-        mFirebaseMessaging.send(new RemoteMessage.Builder(projectId + "@gcm.googleapis.com")
-                .setMessageType(".messaggio")
-                .setMessageId(Integer.toString(getMessageId()))
-                .setData(map)
-                .addData("token", mToken)
-                .addData("message_operation", "subscribe")
-                .build());
+    private void updateTopicsToCssXMPP(Map<String, String> map, String message_operation) {
+        synchronized (map) {
+            mFirebaseMessaging.send(new RemoteMessage.Builder(projectId + "@gcm.googleapis.com")
+                    .setMessageType(".messaggio")
+                    .setMessageId(Integer.toString(getMessageId()))
+                    .setData(map)
+                    .addData("token", mToken)
+                    .addData("message_operation", message_operation)
+                    .build());
+        }
     }
 
     @Override
