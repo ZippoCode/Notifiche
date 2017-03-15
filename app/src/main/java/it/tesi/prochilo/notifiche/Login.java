@@ -21,8 +21,6 @@ import it.tesi.prochilo.notifiche.server.CustomServerManagement;
  */
 public class Login implements ServerInterface {
 
-    private final String mUrl;
-    private final String mToken;
     private ServerRestMethod mServerRestMethod;
 
     /**
@@ -30,24 +28,16 @@ public class Login implements ServerInterface {
      * @param password L'identificativo dell'utente
      */
     public Login(String account, String password) {
-        mUrl = "http://192.168.1.7:8080/topic";
-        mToken = "token_admin";
     }
 
     /**
      * Setta il server
      *
-     * @param serverType
+     * @param server
      */
     @Override
-    public void setServerType(ServerType serverType) {
-        if (serverType.equals(ServerType.SERVERCUSTOM)) {
-            mServerRestMethod = new CustomServerManagement(mUrl, mToken);
-        } else if (serverType.equals(ServerType.SERVERFIREBASE)) {
-            mServerRestMethod = new CustomFMS(mToken);
-        } else {
-            throw new IllegalArgumentException("Server not found");
-        }
+    public void setServerType(ServerRestMethod server) {
+        mServerRestMethod = server;
         mServerRestMethod.setOnServerListener(new ServerListener() {
             @Override
             public void onSuccess() {
@@ -68,7 +58,10 @@ public class Login implements ServerInterface {
      * @return Ritorna true se l'operazione è andata a buon fine
      */
     @Override
-    public  boolean subscribeToTopics(List<String> topicsList) {
+    public boolean subscribeToTopics(List<String> topicsList) {
+        if(mServerRestMethod == null){
+            throw new IllegalStateException("Server non settato");
+        }
         PostAsyncTask task = new PostAsyncTask();
         boolean response = false;
         task.execute(topicsList);
@@ -89,6 +82,9 @@ public class Login implements ServerInterface {
      */
     @Override
     public List<Topic> getTopics() {
+        if(mServerRestMethod == null){
+            throw new IllegalStateException("Server non settato");
+        }
         GetAsyncTask task = new GetAsyncTask();
         task.execute();
         List<Topic> response = new LinkedList<>();
@@ -110,6 +106,9 @@ public class Login implements ServerInterface {
      */
     @Override
     public boolean unsubscribeFromTopics(List<String> topicsList) {
+        if(mServerRestMethod == null){
+            throw new IllegalStateException("Server non settato");
+        }
         DeleteAsyncTask task = new DeleteAsyncTask();
         boolean response = false;
         task.execute(topicsList);

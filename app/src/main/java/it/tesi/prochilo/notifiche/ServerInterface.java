@@ -5,18 +5,11 @@ import java.util.List;
 public interface ServerInterface {
 
     /**
-     * Rappresentano le due classi implementate che estendono ServerRestMethod
-     */
-    enum ServerType {
-        SERVERCUSTOM, SERVERFIREBASE
-    }
-
-    /**
      * Data la tipologia del server setta il server richiesto
      *
      * @param server
      */
-    void setServerType(ServerType server);
+    void setServerType(ServerRestMethod server);
 
     /**
      * Sottoscrivere l'utente alla lista di Topic

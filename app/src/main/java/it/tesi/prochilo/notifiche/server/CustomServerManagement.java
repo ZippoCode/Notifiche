@@ -85,17 +85,18 @@ public class CustomServerManagement implements ServerRestMethod {
                     if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
                         inputStream = httpURLConnection.getInputStream();
                         topicList = new LinkedList<>();
-                    }
-                    JSONArray response = new JSONArray(IOUtil.getString(inputStream));
-                    for (int i = 0; i < response.length(); i++) {
-                        JSONObject object = response.getJSONObject(i);
-                        Topic topic = Topic.Builder
-                                .create(object.getString(FieldJSONObject.id.name())
-                                        , object.getString(FieldJSONObject.userId.name()))
-                                .addTopic(object.getString(FieldJSONObject.topic.name()))
-                                .addTimestamp(object.getString(FieldJSONObject.timestamp.name()))
-                                .build();
-                        topicList.add(topic);
+
+                        JSONArray response = new JSONArray(IOUtil.getString(inputStream));
+                        for (int i = 0; i < response.length(); i++) {
+                            JSONObject object = response.getJSONObject(i);
+                            Topic topic = Topic.Builder
+                                    .create(object.getString(FieldJSONObject.id.name())
+                                            , object.getString(FieldJSONObject.userId.name()))
+                                    .addTopic(object.getString(FieldJSONObject.topic.name()))
+                                    .addTimestamp(object.getString(FieldJSONObject.timestamp.name()))
+                                    .build();
+                            topicList.add(topic);
+                        }
                     }
                 } catch (JSONException json) {
                     Topic topic = Topic.Builder.create("null", "null")

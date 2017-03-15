@@ -10,6 +10,7 @@ import java.util.List;
 
 import it.tesi.prochilo.notifiche.Login;
 import it.tesi.prochilo.notifiche.ServerInterface;
+import it.tesi.prochilo.notifiche.server.CustomFMS;
 import it.tesi.prochilo.notifiche.server.CustomServerManagement;
 import it.tesi.prochilo.notifiche.R;
 import it.tesi.prochilo.notifiche.Topic;
@@ -20,6 +21,8 @@ public class ButtonActivity extends FragmentActivity {
     private String email, password;
     private Login serverFirebase;
     private Login serverCustom;
+    private String url = "http://192.168.1.7:8080/topic";
+    private String token = "token_admin";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -29,8 +32,8 @@ public class ButtonActivity extends FragmentActivity {
         password = getIntent().getStringExtra("password");
         serverFirebase = new Login(email, password);
         serverCustom = new Login(email, password);
-        serverFirebase.setServerType(ServerInterface.ServerType.SERVERFIREBASE);
-        serverCustom.setServerType(ServerInterface.ServerType.SERVERCUSTOM);
+        serverFirebase.setServerType(new CustomFMS(token));
+        serverCustom.setServerType(new CustomServerManagement(url, token));
         inviaTopic = (Button) findViewById(R.id.invia_topic);
         getTopic = (Button) findViewById(R.id.ricevi_topic);
         deleteTopic = (Button) findViewById(R.id.elimina_topic);
