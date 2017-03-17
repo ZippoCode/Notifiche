@@ -3,6 +3,7 @@ package it.tesi.prochilo.notifiche.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -11,11 +12,13 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import it.tesi.prochilo.notifiche.API;
+import it.tesi.prochilo.notifiche.MainActivity;
 import it.tesi.prochilo.notifiche.ServerListener;
 import it.tesi.prochilo.notifiche.R;
 import it.tesi.prochilo.notifiche.Topic;
@@ -30,12 +33,12 @@ public class MainMenuActivity extends AppCompatActivity {
     private ServerListener serverListener = new ServerListener() {
         @Override
         public void onSuccess() {
-
+            Log.d("CIAONE", "CIOEN");
         }
 
         @Override
         public void onFailure() {
-
+            Log.d("CO", "NON RIUSCITA");
         }
     };
 
@@ -83,6 +86,8 @@ public class MainMenuActivity extends AppCompatActivity {
                 break;
             case R.id.logout:
                 Login.getAPI().logout(serverListener);
+                intent = new Intent(this, MainActivity.class);
+                startActivity(intent);
                 break;
             default:
                 throw new IllegalArgumentException("item don't fount");

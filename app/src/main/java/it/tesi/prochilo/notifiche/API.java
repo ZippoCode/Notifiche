@@ -18,20 +18,21 @@ public class API implements InterfaceAPI {
     @Override
     public void login(ServerListener serverListener) {
         List<String> topicsList = new LinkedList<>();
-        List<Topic> list = serverCustom.getTopics(serverListener);
-        for (Topic topic : list) {
+        for (Topic topic : getTopics(serverListener)) {
             topicsList.add(topic.topic);
         }
-        serverFirebase.connetti(topicsList, serverListener);
+        if (topicsList.size() > 0)
+            serverFirebase.connetti(topicsList, serverListener);
     }
 
     @Override
     public void logout(ServerListener serverListener) {
         List<String> topicsList = new LinkedList<>();
-        for (Topic topic : serverCustom.getTopics(serverListener)) {
+        for (Topic topic : getTopics(serverListener)) {
             topicsList.add(topic.topic);
         }
-        serverFirebase.disconnetti(topicsList, serverListener);
+        if (topicsList.size() > 0)
+            serverFirebase.disconnetti(topicsList, serverListener);
     }
 
     @Override
@@ -40,33 +41,50 @@ public class API implements InterfaceAPI {
     }
 
     @Override
-    public void subscribeToTopic(String topic, ServerListener serverListener) {
-        List<String> topicsList = new LinkedList<>();
+    public boolean subscribeToTopic(final String topic, final ServerListener serverListener) {
+        final LinkedList<String> topicsList = new LinkedList<>();
         topicsList.add(topic);
-        serverCustom.subscribeToTopics(topicsList, serverListener);
-        serverFirebase.subscribeToTopics(topicsList, serverListener);
+        return subscribeToTopics(topicsList, serverListener);
     }
 
 
     @Override
-    public void unsubscribeFromTopic(String topic, ServerListener serverListener) {
-        List<String> topicsList = new LinkedList<>();
+    public boolean unsubscribeFromTopic(final String topic, final ServerListener serverListener) {
+        final List<String> topicsList = new LinkedList<>();
         topicsList.add(topic);
-        serverCustom.unsubscribeFromTopics(topicsList, serverListener);
-        serverFirebase.unsubscribeFromTopics(topicsList, serverListener);
+        return unsubscribeFromTopics(topicsList, serverListener);
     }
 
     @Override
-    public void subscribeToTopics(List<String> topicsList, ServerListener serverListener) {
-        serverCustom.subscribeToTopics(topicsList, serverListener);
-        serverFirebase.subscribeToTopics(topicsList, serverListener);
+    public boolean subscribeToTopics(final List<String> topicsList, final ServerListener serverListener) {
+        return serverCustom.subscribeToTopics(topicsList, new ServerListener() {
+            @Override
+            public void onSuccess() {
+                serverFirebase.subscribeToTopics(topicsList, serverListener);
+            }
+
+            @Override
+            public void onFailure() {
+                serverListener.onFailure();
+            }
+        });
     }
 
 
     @Override
-    public void unsubscribeFromTopics(List<String> topicsList, ServerListener serverListener) {
-        serverCustom.unsubscribeFromTopics(topicsList, serverListener);
-        serverFirebase.unsubscribeFromTopics(topicsList, serverListener);
+    public boolean unsubscribeFromTopics(final List<String> topicsList, final ServerListener serverListener) {
+        return serverCustom.unsubscribeFromTopics(topicsList, new ServerListener() {
+            @Override
+            public void onSuccess() {
+                serverFirebase.unsubscribeFromTopics(topicsList, serverListener);
+            }
+
+            @Override
+            public void onFailure() {
+                serverListener.onFailure();
+            }
+        });
+
     }
 
 }

@@ -11,12 +11,12 @@ public interface InterfaceAPI {
 
     List<Topic> getTopics(ServerListener serverListener);
 
-    void subscribeToTopic(String topic, ServerListener serverListener);
+    boolean subscribeToTopic(String topic, ServerListener serverListener);
 
-    void subscribeToTopics(List<String> topicsList, ServerListener serverListener);
+    boolean subscribeToTopics(List<String> topicsList, ServerListener serverListener);
 
-    void unsubscribeFromTopic(String topic, ServerListener serverListener);
+    boolean unsubscribeFromTopic(String topic, ServerListener serverListener);
 
-    void unsubscribeFromTopics(List<String> topicsList, ServerListener serverListener);
+    boolean unsubscribeFromTopics(List<String> topicsList, ServerListener serverListener);
 
 }

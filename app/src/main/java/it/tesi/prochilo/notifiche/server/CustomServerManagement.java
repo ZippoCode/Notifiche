@@ -99,17 +99,17 @@ public class CustomServerManagement {
                             .build();
                     topicList.add(topic);
                     flag = false;
-                    serverListener.onFailure();
                 } finally {
                     httpURLConnection.disconnect();
                 }
             }
         } catch (IOException ioe) {
             flag = false;
-            serverListener.onFailure();
         }
         if (flag)
             serverListener.onSuccess();
+        else
+            serverListener.onFailure();
         return topicList;
     }
 
@@ -161,10 +161,8 @@ public class CustomServerManagement {
             }
         } catch (JSONException json) {
             flag = false;
-            serverListener.onFailure();
         } catch (IOException ioe) {
             flag = false;
-            serverListener.onFailure();
         } finally {
             if (httpURLConnection != null) {
                 httpURLConnection.disconnect();
@@ -172,6 +170,8 @@ public class CustomServerManagement {
         }
         if (flag)
             serverListener.onSuccess();
+        else
+            serverListener.onFailure();
         return httpResponseCode == HttpURLConnection.HTTP_OK;
     }
 
