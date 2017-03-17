@@ -19,7 +19,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".fragment.ButtonActivity" />
+        <activity android:name=".ui.MainMenuActivity" />
+        <activity android:name=".ui.PostFragment" />
+        <activity android:name=".ui.DeleteActivity" />
 
         <service android:name=".server.CustomFMS">
             <intent-filter>

@@ -16,10 +16,9 @@ import java.util.List;
 
 import it.tesi.prochilo.notifiche.util.IOUtil;
 import it.tesi.prochilo.notifiche.ServerListener;
-import it.tesi.prochilo.notifiche.ServerRestMethod;
 import it.tesi.prochilo.notifiche.Topic;
 
-public class CustomServerManagement implements ServerRestMethod {
+public class CustomServerManagement {
 
     public enum HttpMethod {
         GET, POST, DELETE;
@@ -37,36 +36,31 @@ public class CustomServerManagement implements ServerRestMethod {
     private String mUrlString = null;
     private final int connectionTimeout = 5000;
     private final String mToken;
-    private ServerListener mServerListener;
 
     public CustomServerManagement(String urlString, final String token) {
         this.mUrlString = urlString;
         this.mToken = token;
     }
 
-    @Override
-    public void setOnServerListener(ServerListener serverListener) {
-        this.mServerListener = serverListener;
-    }
 
     /**
      * Invia e sottoscrive il token ad una lista di topic sul Server Custom
      *
      * @param topicsList
+     * @param serverListener
      * @return True se la richiesta ha avuto successo, altrimenti ritorna false
      */
-    @Override
-    public boolean postTopics(List<String> topicsList) {
-        return postAndDeleteRequest(topicsList, HttpMethod.POST);
+    public boolean postTopics(List<String> topicsList, ServerListener serverListener) {
+        return postAndDeleteRequest(topicsList, HttpMethod.POST, serverListener);
     }
 
     /**
      * Ritorna la lista di Topic a cui è sottoscritto il token sul Server Custom
      *
+     * @param serverListener
      * @return La lista dei Topic
      */
-    @Override
-    public List<Topic> getTopics() {
+    public List<Topic> getTopics(ServerListener serverListener) {
         List<Topic> topicList = new LinkedList<>();
         String httpResponseMessage = null;
         URL url = null;
@@ -105,17 +99,17 @@ public class CustomServerManagement implements ServerRestMethod {
                             .build();
                     topicList.add(topic);
                     flag = false;
-                    mServerListener.onFailure();
+                    serverListener.onFailure();
                 } finally {
                     httpURLConnection.disconnect();
                 }
             }
         } catch (IOException ioe) {
             flag = false;
-            mServerListener.onFailure();
+            serverListener.onFailure();
         }
         if (flag)
-            mServerListener.onSuccess();
+            serverListener.onSuccess();
         return topicList;
     }
 
@@ -123,21 +117,22 @@ public class CustomServerManagement implements ServerRestMethod {
      * Elimina i topic a cui è sottoscritto il token
      *
      * @param topic
+     * @param serverListener
      * @return
      */
-    @Override
-    public boolean deleteTopics(List<String> topic) {
-        return postAndDeleteRequest(topic, HttpMethod.DELETE);
+    public boolean deleteTopics(List<String> topic, ServerListener serverListener) {
+        return postAndDeleteRequest(topic, HttpMethod.DELETE, serverListener);
     }
 
 
     /**
      * @param topicsList
      * @param method
+     * @param serverListener
      * @return
      */
 
-    private boolean postAndDeleteRequest(List<String> topicsList, HttpMethod method) {
+    private boolean postAndDeleteRequest(List<String> topicsList, HttpMethod method, ServerListener serverListener) {
         int httpResponseCode = -1;
         URL url = null;
         HttpURLConnection httpURLConnection = null;
@@ -166,17 +161,17 @@ public class CustomServerManagement implements ServerRestMethod {
             }
         } catch (JSONException json) {
             flag = false;
-            mServerListener.onFailure();
+            serverListener.onFailure();
         } catch (IOException ioe) {
             flag = false;
-            mServerListener.onFailure();
+            serverListener.onFailure();
         } finally {
             if (httpURLConnection != null) {
                 httpURLConnection.disconnect();
             }
         }
         if (flag)
-            mServerListener.onSuccess();
+            serverListener.onSuccess();
         return httpResponseCode == HttpURLConnection.HTTP_OK;
     }
 

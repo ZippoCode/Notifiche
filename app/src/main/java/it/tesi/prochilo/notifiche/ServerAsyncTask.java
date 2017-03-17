@@ -19,37 +19,15 @@ import it.tesi.prochilo.notifiche.server.CustomServerManagement;
  * @author Salvatore Prochilo
  * @version 1.0
  */
-public class Login implements ServerInterface {
+public class ServerAsyncTask implements ServerInterface {
 
-    private ServerRestMethod mServerRestMethod;
+    private CustomServerManagement mCustomServerManagement;
+    private ServerListener mServerListener;
 
-    /**
-     * @param account  L'indirizzo del Server Custom
-     * @param password L'identificativo dell'utente
-     */
-    public Login(String account, String password) {
+    public ServerAsyncTask(String url, String token) {
+        mCustomServerManagement = new CustomServerManagement(url, token);
     }
 
-    /**
-     * Setta il server
-     *
-     * @param server
-     */
-    @Override
-    public void setServerType(ServerRestMethod server) {
-        mServerRestMethod = server;
-        mServerRestMethod.setOnServerListener(new ServerListener() {
-            @Override
-            public void onSuccess() {
-                Log.d("Operazione: ", "Riuscita");
-            }
-
-            @Override
-            public void onFailure() {
-                Log.d("Operazione: ", "Fallita");
-            }
-        });
-    }
 
     /**
      * Inoltra le richieste di sottoscrizione ai topic ai due server
@@ -58,11 +36,9 @@ public class Login implements ServerInterface {
      * @return Ritorna true se l'operazione è andata a buon fine
      */
     @Override
-    public boolean subscribeToTopics(List<String> topicsList) {
-        if(mServerRestMethod == null){
-            throw new IllegalStateException("Server non settato");
-        }
+    public boolean subscribeToTopics(List<String> topicsList, ServerListener serverListener) {
         PostAsyncTask task = new PostAsyncTask();
+        this.mServerListener = serverListener;
         boolean response = false;
         task.execute(topicsList);
         try {
@@ -81,11 +57,9 @@ public class Login implements ServerInterface {
      * @return La lista dei topic
      */
     @Override
-    public List<Topic> getTopics() {
-        if(mServerRestMethod == null){
-            throw new IllegalStateException("Server non settato");
-        }
+    public List<Topic> getTopics(ServerListener serverListener) {
         GetAsyncTask task = new GetAsyncTask();
+        this.mServerListener = serverListener;
         task.execute();
         List<Topic> response = new LinkedList<>();
         try {
@@ -99,17 +73,15 @@ public class Login implements ServerInterface {
     }
 
     /**
-     * Inoltre la richiesta di sottoscrizione ai Topic a due server
+     * Inoltre la richiesta di sottoscrizione
      *
      * @param topicsList La lista di topic
      * @return True se l'operazione è andata a buon fine, false altrimenti
      */
     @Override
-    public boolean unsubscribeFromTopics(List<String> topicsList) {
-        if(mServerRestMethod == null){
-            throw new IllegalStateException("Server non settato");
-        }
+    public boolean unsubscribeFromTopics(List<String> topicsList, ServerListener serverListener) {
         DeleteAsyncTask task = new DeleteAsyncTask();
+        this.mServerListener = serverListener;
         boolean response = false;
         task.execute(topicsList);
         try {
@@ -126,7 +98,7 @@ public class Login implements ServerInterface {
 
         @Override
         protected Boolean doInBackground(List<String>... lists) {
-            return mServerRestMethod.postTopics(lists[0]);
+            return mCustomServerManagement.postTopics(lists[0], mServerListener);
         }
 
     }
@@ -134,7 +106,12 @@ public class Login implements ServerInterface {
     private class GetAsyncTask extends AsyncTask<Void, Void, List<Topic>> {
         @Override
         protected List<Topic> doInBackground(Void... voids) {
-            return mServerRestMethod.getTopics();
+            return mCustomServerManagement.getTopics(mServerListener);
+        }
+
+        @Override
+        protected void onPostExecute(List<Topic> topics) {
+            super.onPostExecute(topics);
         }
     }
 
@@ -142,7 +119,7 @@ public class Login implements ServerInterface {
 
         @Override
         protected Boolean doInBackground(List<String>... lists) {
-            return mServerRestMethod.deleteTopics(lists[0]);
+            return mCustomServerManagement.deleteTopics(lists[0], mServerListener);
         }
 
     }

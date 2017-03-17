@@ -7,8 +7,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import it.tesi.prochilo.notifiche.fragment.ButtonActivity;
+import java.util.LinkedList;
+
 import it.tesi.prochilo.notifiche.server.CustomFMS;
+import it.tesi.prochilo.notifiche.ui.MainMenuActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -19,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        CustomFMS fms = new CustomFMS("token_admin");
         loginButton = (Button) findViewById(R.id.login_button);
         eMail = (EditText) findViewById(R.id.editText_email);
         password = (EditText) findViewById(R.id.editText_password);
@@ -31,9 +34,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void eseguiRichieste(String email, String password) {
-        Intent intent = new Intent(this, ButtonActivity.class);
+        Intent intent = new Intent(this, MainMenuActivity.class);
         intent.putExtra("email", email);
         intent.putExtra("password", password);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
+        finish();
     }
 }

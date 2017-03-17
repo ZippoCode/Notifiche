@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:id="@+id/server_layout"
-    tools:context=".fragment.ButtonActivity">
+    tools:context=".ui.MainMenuActivity">
 
     <Button
         android:id="@+id/invia_topic"
