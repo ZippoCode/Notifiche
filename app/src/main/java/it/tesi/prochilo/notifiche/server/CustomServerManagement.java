@@ -20,22 +20,24 @@ import it.tesi.prochilo.notifiche.Topic;
 
 public class CustomServerManagement {
 
-    public enum HttpMethod {
-        GET, POST, DELETE;
+    private enum HttpMethod {
+        GET, POST, DELETE
     }
 
     /**
      * Sono i campi che compongono le richiesta JSONObject
      */
-    public enum FieldJSONObject {
-        id, userId, topic, timestamp;
+    private enum FieldJSONObject {
+        id, userId, topic, timestamp
     }
 
     private static final String TAG = CustomServerManagement.class.getSimpleName();
     private static final String AUTHORIZATION = "Authorization";
+    private static final String CONTENT_TYPE = "Content-Type";
     private String mUrlString = null;
     private final int connectionTimeout = 5000;
     private final String mToken;
+
 
     public CustomServerManagement(String urlString, final String token) {
         this.mUrlString = urlString;
@@ -44,11 +46,11 @@ public class CustomServerManagement {
 
 
     /**
-     * Invia e sottoscrive il token ad una lista di topic sul Server Custom
+     * Iscrive i topic descritti nella lista sul server
      *
-     * @param topicsList
-     * @param serverListener
-     * @return True se la richiesta ha avuto successo, altrimenti ritorna false
+     * @param topicsList     La lista di topic
+     * @param serverListener Il listener per notificare se l'operazione è avvenuta con successo o meno
+     * @return True se l'operazione è andata a buon fine, altrimenti false
      */
     public boolean postTopics(List<String> topicsList, ServerListener serverListener) {
         return postAndDeleteRequest(topicsList, HttpMethod.POST, serverListener);
@@ -57,14 +59,13 @@ public class CustomServerManagement {
     /**
      * Ritorna la lista di Topic a cui è sottoscritto il token sul Server Custom
      *
-     * @param serverListener
+     * @param serverListener Il listener per notificare se l'operazione è avvenuta con successo o meno
      * @return La lista dei Topic
      */
     public List<Topic> getTopics(ServerListener serverListener) {
-        List<Topic> topicList = null;
         URL url;
         HttpURLConnection httpURLConnection = null;
-        boolean flag = true;
+        List<Topic> topicList = null;
         try {
             url = new URL(mUrlString);
             httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -72,101 +73,92 @@ public class CustomServerManagement {
             httpURLConnection.setRequestMethod(HttpMethod.GET.name());
             httpURLConnection.addRequestProperty("Content-Type", "application/json");
             httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + mToken);
-            if (httpURLConnection != null) {
-                InputStream inputStream;
-                try {
-                    if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                        inputStream = httpURLConnection.getInputStream();
-                        topicList = new LinkedList<>();
-
-                        JSONArray response = new JSONArray(IOUtil.getString(inputStream));
-                        for (int i = 0; i < response.length(); i++) {
-                            JSONObject object = response.getJSONObject(i);
-                            Topic topic = Topic.Builder
-                                    .create(object.getString(FieldJSONObject.id.name())
-                                            , object.getString(FieldJSONObject.userId.name()))
-                                    .addTopic(object.getString(FieldJSONObject.topic.name()))
-                                    .addTimestamp(object.getString(FieldJSONObject.timestamp.name()))
-                                    .build();
-                            topicList.add(topic);
-                        }
-                    }
-                } catch (JSONException json) {
-                    flag = false;
-                } finally {
-                    httpURLConnection.disconnect();
+            InputStream inputStream;
+            if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                inputStream = httpURLConnection.getInputStream();
+                topicList = new LinkedList<>();
+                JSONArray response = new JSONArray(IOUtil.getString(inputStream));
+                for (int i = 0; i < response.length(); i++) {
+                    JSONObject object = response.getJSONObject(i);
+                    Topic topic = Topic.Builder
+                            .create(object.getString(FieldJSONObject.id.name())
+                                    , object.getString(FieldJSONObject.userId.name()))
+                            .addTopic(object.getString(FieldJSONObject.topic.name()))
+                            .addTimestamp(object.getString(FieldJSONObject.timestamp.name()))
+                            .build();
+                    topicList.add(topic);
                 }
+                Log.d(TAG, "Richiesta " + HttpMethod.GET.name() + " eseguita");
+                serverListener.onSuccess();
             }
-        } catch (IOException ioe) {
-            flag = false;
-        }
-        if (flag)
-            serverListener.onSuccess();
-        else
+        } catch (IOException | JSONException json) {
+            Log.d(TAG, "Richiesta " + HttpMethod.GET.name() + " fallita");
             serverListener.onFailure();
+            return null;
+        } finally {
+            if (httpURLConnection != null)
+                httpURLConnection.disconnect();
+        }
         return topicList;
     }
 
     /**
-     * Elimina i topic a cui è sottoscritto il token
+     * Elimina i topic descritti nella lista sul server
      *
-     * @param topic
-     * @param serverListener
-     * @return
+     * @param topicsList     La lista di topic
+     * @param serverListener Il listener per notificare se l'operazione è avvenuta con successo o meno
+     * @return True se l'operazione è andata a buon fine, altrimenti false
      */
-    public boolean deleteTopics(List<String> topic, ServerListener serverListener) {
-        return postAndDeleteRequest(topic, HttpMethod.DELETE, serverListener);
+
+    public boolean deleteTopics(List<String> topicsList, ServerListener serverListener) {
+        return postAndDeleteRequest(topicsList, HttpMethod.DELETE, serverListener);
     }
 
 
     /**
-     * @param topicsList
-     * @param method
-     * @param serverListener
-     * @return
+     * Esegue una richiesta HTTP al server di tipo POST o DELETE e ritorna
+     * true se l'operazione è andata a buon fine, altrimenti false
+     *
+     * @param topicsList     La lista di topic
+     * @param method         Il tipo di HTTP
+     * @param serverListener Il listener per notificare se l'operazione è avvenuta con successo o meno
+     * @return True se l'operazione è andata a buon fine, altrimenti false
      */
-
     private boolean postAndDeleteRequest(List<String> topicsList, HttpMethod method, ServerListener serverListener) {
-        int httpResponseCode = -1;
-        URL url = null;
+        URL url;
         HttpURLConnection httpURLConnection = null;
-        boolean flag = true;
         try {
             url = new URL(mUrlString);
             httpURLConnection = (HttpURLConnection) url.openConnection();
             httpURLConnection.setConnectTimeout(connectionTimeout);
             httpURLConnection.setRequestMethod(method.name());
-            httpURLConnection.addRequestProperty("Content-Type", "application/json");
+            httpURLConnection.addRequestProperty(CONTENT_TYPE, "application/json");
             httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + mToken);
             httpURLConnection.setDoOutput(true);
-            if (httpURLConnection != null) {
-                OutputStream outputStream = httpURLConnection.getOutputStream();
-                JSONArray jsonArray = new JSONArray();
-                for (int i = 0; i < topicsList.size(); i++) {
-                    JSONObject topic = new JSONObject();
-                    topic.put("topic", topicsList.get(i));
-                    jsonArray.put(topic);
-                }
-                outputStream.write(jsonArray.toString().getBytes("UTF-8"));
-                outputStream.flush();
-                httpResponseCode = httpURLConnection.getResponseCode();
-                String httpResponseMessage = httpURLConnection.getResponseMessage();
-                Log.d(TAG, "Response from Server: " + httpResponseMessage);
+            OutputStream outputStream = httpURLConnection.getOutputStream();
+            JSONArray jsonArray = new JSONArray();
+            for (int i = 0; i < topicsList.size(); i++) {
+                JSONObject topic = new JSONObject();
+                topic.put("topic", topicsList.get(i));
+                jsonArray.put(topic);
             }
-        } catch (JSONException json) {
-            flag = false;
-        } catch (IOException ioe) {
-            flag = false;
-        } finally {
-            if (httpURLConnection != null) {
-                httpURLConnection.disconnect();
+            outputStream.write(jsonArray.toString().getBytes("UTF-8"));
+            if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                Log.d(TAG, "Richiesta " + method.name() + " eseguita");
+                serverListener.onSuccess();
+                return true;
+            } else {
+                Log.d(TAG, "Richiesta " + method.name() + " fallita");
+                serverListener.onFailure();
+                return false;
             }
-        }
-        if (flag)
-            serverListener.onSuccess();
-        else
+        } catch (JSONException | IOException e) {
             serverListener.onFailure();
-        return httpResponseCode == HttpURLConnection.HTTP_OK;
+            return false;
+        } finally {
+            if (httpURLConnection != null)
+                httpURLConnection.disconnect();
+        }
     }
 
 }

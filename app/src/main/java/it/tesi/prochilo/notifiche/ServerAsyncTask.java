@@ -19,7 +19,7 @@ import it.tesi.prochilo.notifiche.server.CustomServerManagement;
  * @author Salvatore Prochilo
  * @version 1.0
  */
-public class ServerAsyncTask implements ServerInterface {
+public class ServerAsyncTask {
 
     private CustomServerManagement mCustomServerManagement;
     private ServerListener mServerListener;
@@ -29,13 +29,6 @@ public class ServerAsyncTask implements ServerInterface {
     }
 
 
-    /**
-     * Inoltra le richieste di sottoscrizione ai topic ai due server
-     *
-     * @param topicsList La lista dei topic
-     * @return Ritorna true se l'operazione è andata a buon fine
-     */
-    @Override
     public boolean subscribeToTopics(List<String> topicsList, ServerListener serverListener) {
         PostAsyncTask task = new PostAsyncTask();
         this.mServerListener = serverListener;
@@ -51,12 +44,6 @@ public class ServerAsyncTask implements ServerInterface {
         return response;
     }
 
-    /**
-     * Inoltra la richiesta di GET ai due server
-     *
-     * @return La lista dei topic
-     */
-    @Override
     public List<Topic> getTopics(ServerListener serverListener) {
         GetAsyncTask task = new GetAsyncTask();
         this.mServerListener = serverListener;
@@ -72,13 +59,6 @@ public class ServerAsyncTask implements ServerInterface {
         return response;
     }
 
-    /**
-     * Inoltre la richiesta di sottoscrizione
-     *
-     * @param topicsList La lista di topic
-     * @return True se l'operazione è andata a buon fine, false altrimenti
-     */
-    @Override
     public boolean unsubscribeFromTopics(List<String> topicsList, ServerListener serverListener) {
         DeleteAsyncTask task = new DeleteAsyncTask();
         this.mServerListener = serverListener;
