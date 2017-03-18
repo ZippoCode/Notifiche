@@ -24,7 +24,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        CustomFMS fms = new CustomFMS("token_admin");
         loginButton = (Button) findViewById(R.id.login_button);
         eMail = (EditText) findViewById(R.id.editText_email);
         password = (EditText) findViewById(R.id.editText_password);

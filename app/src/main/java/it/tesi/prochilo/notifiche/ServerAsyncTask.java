@@ -1,14 +1,11 @@
 package it.tesi.prochilo.notifiche;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import it.tesi.prochilo.notifiche.server.CustomFMS;
 import it.tesi.prochilo.notifiche.server.CustomServerManagement;
 
 /**
@@ -78,7 +75,7 @@ public class ServerAsyncTask {
 
         @Override
         protected Boolean doInBackground(List<String>... lists) {
-            return mCustomServerManagement.postTopics(lists[0], mServerListener);
+            return mCustomServerManagement.postRequest(lists[0], mServerListener);
         }
 
     }
@@ -86,7 +83,7 @@ public class ServerAsyncTask {
     private class GetAsyncTask extends AsyncTask<Void, Void, List<Topic>> {
         @Override
         protected List<Topic> doInBackground(Void... voids) {
-            return mCustomServerManagement.getTopics(mServerListener);
+            return mCustomServerManagement.getRequest(mServerListener);
         }
     }
 
@@ -94,7 +91,7 @@ public class ServerAsyncTask {
 
         @Override
         protected Boolean doInBackground(List<String>... lists) {
-            return mCustomServerManagement.deleteTopics(lists[0], mServerListener);
+            return mCustomServerManagement.deleteRequest(lists[0], mServerListener);
         }
 
     }

@@ -3,37 +3,30 @@ package it.tesi.prochilo.notifiche.server;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.regex.Pattern;
 
 import it.tesi.prochilo.notifiche.R;
 import it.tesi.prochilo.notifiche.ServerListener;
-import it.tesi.prochilo.notifiche.Topic;
+import it.tesi.prochilo.notifiche.util.IOUtil;
 
 public class CustomFMS extends FirebaseMessagingService {
 
     private static final String TAG = FirebaseMessagingService.class.getCanonicalName();
-    private static final String REGULAREXPRESSION = "[a-zA-Z0-9-_.~%]{1,900}";
     private final String mToken;
     private static List<Integer> messageId;
     private static final Random random;
     private FirebaseMessaging mFirebaseMessaging;
-    private String projectId = "77244763443";
+    private String mProjectId;
 
     static {
         random = new Random();
@@ -41,90 +34,32 @@ public class CustomFMS extends FirebaseMessagingService {
     }
 
     public CustomFMS() {
-        this("");
+        this("", "");
     }
 
-    public CustomFMS(final String token) {
+    public CustomFMS(final String projectId, final String token) {
+        mProjectId = projectId;
         this.mToken = token;
         mFirebaseMessaging = FirebaseMessaging.getInstance();
     }
 
     /**
-     * Sottoscrive il token ad una lista di topic presso il Firebase Cloud Messaging
+     * Associa un dispositivo al ServerCCS per l'associazione al dispositivo e
+     * sottoscrive i topics su Firebase
      *
      * @param topicsList     La lista dei topic
-     * @param serverListener
-     * @return True se l'operazione è andata a buon fine altrimenti ritorna false
+     * @param serverListener Notifica se l'operazione è avvenuta con successo o no
      */
-    public boolean subscribeToTopics(List<String> topicsList, ServerListener serverListener) {
-        Map<String, String> map = new HashMap<>();
-        synchronized (map) {
-            for (int i = 0; i < topicsList.size(); i++) {
-                if (Pattern.matches(REGULAREXPRESSION, topicsList.get(i))) {
-                    mFirebaseMessaging.subscribeToTopic(topicsList.get(i));
-                    map.put("topic" + i, topicsList.get(i));
-                }
-            }
-            updateTopicsToCssXMPP(map, "subscribe");
-            serverListener.onSuccess();
-        }
-        return true;
-    }
-
-    /**
-     * Disiscrive il token alla lista presso il Firebase Cloud Messaging
-     *
-     * @param topicsList     La lista dei topic
-     * @param serverListener
-     * @return True se l'operazione è andata a buon fine, altrimenti false
-     */
-    public boolean unsubscribeFromTopics(List<String> topicsList, ServerListener serverListener) {
-        Map<String, String> map = new HashMap<>();
-        synchronized (map) {
-            for (int i = 0; i < topicsList.size(); i++) {
-                if (Pattern.matches(REGULAREXPRESSION, topicsList.get(i))) {
-                    mFirebaseMessaging.unsubscribeFromTopic(topicsList.get(i));
-                    map.put("topic" + i, topicsList.get(i));
-                }
-            }
-            updateTopicsToCssXMPP(map, "unsubscribe");
-            serverListener.onSuccess();
-        }
-        return true;
-    }
-
-    /**
-     * Elabora la lista dei topic che riceve quando si invoca la richiesta di GET
-     *
-     * @param jsonObject Deve contenere la risposta del server FCM
-     * @return La lista di topic
-     */
-    private List<Topic> topicsElaborator(JSONObject jsonObject) throws JSONException {
-        List<Topic> topicsList = new LinkedList<>();
-        JSONObject topics = (jsonObject.getJSONObject("rel")).getJSONObject("topics");
-        Iterator<String> topicsIterator = topics.keys();
-        synchronized (topicsIterator) {
-            while (topicsIterator.hasNext()) {
-                String topicName = topicsIterator.next();
-                JSONObject topicInfo = topics.getJSONObject(topicName);
-                Topic topic = Topic.Builder.create("", "")
-                        .addTopic(topicName)
-                        .addTimestamp(topicInfo.getString("addDate"))
-                        .build();
-                topicsList.add(topic);
-            }
-        }
-        return topicsList;
-    }
-
     public void connetti(List<String> topicsList, ServerListener serverListener) {
-        if (topicsList == null || mFirebaseMessaging == null)
+        if (topicsList == null || mFirebaseMessaging == null) {
             serverListener.onFailure();
+            return;
+        }
         for (int i = 0; i < topicsList.size(); i++) {
-            if (Pattern.matches(REGULAREXPRESSION, topicsList.get(i)))
+            if (IOUtil.regulatorTopic(topicsList.get(i)))
                 mFirebaseMessaging.subscribeToTopic(topicsList.get(i));
         }
-        mFirebaseMessaging.send(new RemoteMessage.Builder(projectId + "@gcm.googleapis.com")
+        mFirebaseMessaging.send(new RemoteMessage.Builder(mProjectId + "@gcm.googleapis.com")
                 .setMessageId(Integer.toString(getMessageId()))
                 .setMessageType(".registraId")
                 .addData("token", mToken)
@@ -132,20 +67,69 @@ public class CustomFMS extends FirebaseMessagingService {
         serverListener.onSuccess();
     }
 
+    /**
+     * Deassocia il dispositivo al server CCS e disiscrive i topic su FCM
+     *
+     * @param topicsList     La lista dei topic
+     * @param serverListener Notifica se l'operazione è avvenuta con successo o no
+     */
     public void disconnetti(List<String> topicsList, ServerListener serverListener) {
-        if (topicsList == null || mFirebaseMessaging == null)
+        if (topicsList == null || mFirebaseMessaging == null) {
             serverListener.onFailure();
+            return;
+        }
         for (int i = 0; i < topicsList.size(); i++) {
-            if (Pattern.matches(REGULAREXPRESSION, topicsList.get(i)))
+            if (IOUtil.regulatorTopic(topicsList.get(i)))
                 mFirebaseMessaging.unsubscribeFromTopic(topicsList.get(i));
         }
-        mFirebaseMessaging.send(new RemoteMessage.Builder(projectId + "@gcm.googleapis.com")
+        mFirebaseMessaging.send(new RemoteMessage.Builder(mProjectId + "@gcm.googleapis.com")
                 .setMessageId(Integer.toString(getMessageId()))
                 .setMessageType(".eliminaId")
                 .addData("token", mToken)
                 .build());
         serverListener.onSuccess();
     }
+
+    /**
+     * Sottoscrive il token ad una lista di topic presso il Firebase Cloud Messaging
+     *
+     * @param topicsList     La lista dei topic
+     * @param serverListener Notifica se la richiesta è avvenuta con successo o no
+     * @return True se l'operazione è andata a buon fine altrimenti ritorna false
+     */
+    public boolean subscribeToTopics(List<String> topicsList, ServerListener serverListener) {
+        Map<String, String> map = new HashMap<>();
+        for (int i = 0; i < topicsList.size(); i++) {
+            if (IOUtil.regulatorTopic(topicsList.get(i))) {
+                mFirebaseMessaging.subscribeToTopic(topicsList.get(i));
+                map.put("topic" + i, topicsList.get(i));
+            }
+        }
+        updateTopicsToCssXMPP(map, "subscribe");
+        serverListener.onSuccess();
+        return true;
+    }
+
+    /**
+     * Disiscrive il token alla lista presso il Firebase Cloud Messaging
+     *
+     * @param topicsList     La lista dei topic
+     * @param serverListener Notifica se la richiesta è avvenuta con successo o no
+     * @return True se l'operazione è andata a buon fine, altrimenti false
+     */
+    public boolean unsubscribeFromTopics(List<String> topicsList, ServerListener serverListener) {
+        Map<String, String> map = new HashMap<>();
+        for (int i = 0; i < topicsList.size(); i++) {
+            if (IOUtil.regulatorTopic(topicsList.get(i))) {
+                mFirebaseMessaging.unsubscribeFromTopic(topicsList.get(i));
+                map.put("topic" + i, topicsList.get(i));
+            }
+        }
+        updateTopicsToCssXMPP(map, "unsubscribe");
+        serverListener.onSuccess();
+        return true;
+    }
+
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
@@ -164,26 +148,25 @@ public class CustomFMS extends FirebaseMessagingService {
                     .build();
             NotificationManager notificationManager = (NotificationManager)
                     getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.notify(001, notification);
+            notificationManager.notify(1, notification);
         }
     }
 
     private void updateTopicsToCssXMPP(Map<String, String> map, String message_operation) {
-        synchronized (map) {
-            mFirebaseMessaging.send(new RemoteMessage.Builder(projectId + "@gcm.googleapis.com")
-                    .setMessageType(".messaggio")
-                    .setMessageId(Integer.toString(getMessageId()))
-                    .setData(map)
-                    .addData("token", mToken)
-                    .addData("message_operation", message_operation)
-                    .build());
-        }
+        mFirebaseMessaging.send(new RemoteMessage.Builder(mProjectId + "@gcm.googleapis.com")
+                .setMessageType(".messaggio")
+                .setMessageId(Integer.toString(getMessageId()))
+                .setData(map)
+                .addData("token", mToken)
+                .addData("message_operation", message_operation)
+                .build());
     }
 
-    @NonNull
     private Integer getMessageId() {
         int id;
-        while (messageId.contains((id = random.nextInt()))) {
+        id = random.nextInt();
+        while (messageId.contains(id)) {
+            id = random.nextInt();
         }
         messageId.add(id);
         return id;

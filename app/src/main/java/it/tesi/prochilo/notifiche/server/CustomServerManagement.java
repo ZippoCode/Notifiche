@@ -52,7 +52,7 @@ public class CustomServerManagement {
      * @param serverListener Il listener per notificare se l'operazione è avvenuta con successo o meno
      * @return True se l'operazione è andata a buon fine, altrimenti false
      */
-    public boolean postTopics(List<String> topicsList, ServerListener serverListener) {
+    public boolean postRequest(List<String> topicsList, ServerListener serverListener) {
         return postAndDeleteRequest(topicsList, HttpMethod.POST, serverListener);
     }
 
@@ -62,7 +62,7 @@ public class CustomServerManagement {
      * @param serverListener Il listener per notificare se l'operazione è avvenuta con successo o meno
      * @return La lista dei Topic
      */
-    public List<Topic> getTopics(ServerListener serverListener) {
+    public List<Topic> getRequest(ServerListener serverListener) {
         URL url;
         HttpURLConnection httpURLConnection = null;
         List<Topic> topicList = null;
@@ -110,7 +110,7 @@ public class CustomServerManagement {
      * @return True se l'operazione è andata a buon fine, altrimenti false
      */
 
-    public boolean deleteTopics(List<String> topicsList, ServerListener serverListener) {
+    public boolean deleteRequest(List<String> topicsList, ServerListener serverListener) {
         return postAndDeleteRequest(topicsList, HttpMethod.DELETE, serverListener);
     }
 

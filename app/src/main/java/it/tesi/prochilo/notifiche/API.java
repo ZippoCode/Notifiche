@@ -10,9 +10,9 @@ public class API implements InterfaceAPI {
     private static CustomFMS serverFirebase = null;
     private static ServerAsyncTask serverCustom = null;
 
-    public API(String url, String token) {
+    public API(String url, String projectId, String token) {
         serverCustom = new ServerAsyncTask(url, token);
-        serverFirebase = new CustomFMS(token);
+        serverFirebase = new CustomFMS(projectId, token);
     }
 
     @Override
