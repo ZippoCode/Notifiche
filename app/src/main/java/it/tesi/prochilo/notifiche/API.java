@@ -18,7 +18,8 @@ public class API implements InterfaceAPI {
     @Override
     public void login(ServerListener serverListener) {
         List<String> topicsList = new LinkedList<>();
-        for (Topic topic : getTopics(serverListener)) {
+        List<Topic> topics = getTopics(serverListener);
+        for (Topic topic : topics) {
             topicsList.add(topic.topic);
         }
         if (topicsList.size() > 0)
@@ -28,7 +29,8 @@ public class API implements InterfaceAPI {
     @Override
     public void logout(ServerListener serverListener) {
         List<String> topicsList = new LinkedList<>();
-        for (Topic topic : getTopics(serverListener)) {
+        List<Topic> topics = getTopics(serverListener);
+        for (Topic topic : topics) {
             topicsList.add(topic.topic);
         }
         if (topicsList.size() > 0)
