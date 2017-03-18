@@ -26,7 +26,6 @@ import it.tesi.prochilo.notifiche.util.Login;
 
 public class MainMenuActivity extends AppCompatActivity {
 
-    private String email, password;
     private List<Topic> topicsList;
     private ListView mListView;
     private BaseAdapter mAdapter;
@@ -47,12 +46,7 @@ public class MainMenuActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.get_layout);
         //------------------------------
-        email = getIntent().getStringExtra("email");
-        password = getIntent().getStringExtra("password");
-        Login login = new Login(email, password);
-        API api = login.getAPI();
-        api.login(serverListener);
-        topicsList = api.getTopics(serverListener);
+        topicsList = Login.getAPI().getTopics(serverListener);
         //------------------------------
         mListView = (ListView) findViewById(R.id.topic_list);
         mAdapter = getCustomAdapter();

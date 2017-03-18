@@ -61,9 +61,8 @@ public class CustomServerManagement {
      * @return La lista dei Topic
      */
     public List<Topic> getTopics(ServerListener serverListener) {
-        List<Topic> topicList = new LinkedList<>();
-        String httpResponseMessage = null;
-        URL url = null;
+        List<Topic> topicList = null;
+        URL url;
         HttpURLConnection httpURLConnection = null;
         boolean flag = true;
         try {
@@ -74,7 +73,7 @@ public class CustomServerManagement {
             httpURLConnection.addRequestProperty("Content-Type", "application/json");
             httpURLConnection.addRequestProperty(AUTHORIZATION, "Bearer " + mToken);
             if (httpURLConnection != null) {
-                InputStream inputStream = null;
+                InputStream inputStream;
                 try {
                     if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
                         inputStream = httpURLConnection.getInputStream();
@@ -93,11 +92,6 @@ public class CustomServerManagement {
                         }
                     }
                 } catch (JSONException json) {
-                    Topic topic = Topic.Builder.create("null", "null")
-                            .addTopic("null")
-                            .addTimestamp("null")
-                            .build();
-                    topicList.add(topic);
                     flag = false;
                 } finally {
                     httpURLConnection.disconnect();

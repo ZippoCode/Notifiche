@@ -17,24 +17,27 @@ public class API implements InterfaceAPI {
 
     @Override
     public void login(ServerListener serverListener) {
-        List<String> topicsList = new LinkedList<>();
-        List<Topic> topics = getTopics(serverListener);
-        for (Topic topic : topics) {
-            topicsList.add(topic.topic);
+        List<Topic> topicsList = serverCustom.getTopics(serverListener);
+        if (topicsList != null) {
+            List<String> topicsNameList = new LinkedList<>();
+            for (Topic topic : topicsList) {
+                topicsNameList.add(topic.topic);
+            }
+            serverFirebase.connetti(topicsNameList, serverListener);
         }
-        if (topicsList.size() > 0)
-            serverFirebase.connetti(topicsList, serverListener);
     }
 
     @Override
     public void logout(ServerListener serverListener) {
-        List<String> topicsList = new LinkedList<>();
-        List<Topic> topics = getTopics(serverListener);
-        for (Topic topic : topics) {
-            topicsList.add(topic.topic);
+        List<Topic> topicsList = serverCustom.getTopics(serverListener);
+        if (topicsList != null) {
+            List<String> topicsNameList = new LinkedList<>();
+            for (Topic topic : topicsList) {
+                topicsNameList.add(topic.topic);
+            }
+            if (topicsNameList.size() > 0)
+                serverFirebase.disconnetti(topicsNameList, serverListener);
         }
-        if (topicsList.size() > 0)
-            serverFirebase.disconnetti(topicsList, serverListener);
     }
 
     @Override

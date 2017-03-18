@@ -108,11 +108,6 @@ public class ServerAsyncTask implements ServerInterface {
         protected List<Topic> doInBackground(Void... voids) {
             return mCustomServerManagement.getTopics(mServerListener);
         }
-
-        @Override
-        protected void onPostExecute(List<Topic> topics) {
-            super.onPostExecute(topics);
-        }
     }
 
     private class DeleteAsyncTask extends AsyncTask<List<String>, Void, Boolean> {
