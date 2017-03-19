@@ -91,7 +91,8 @@ public class CustomServerManagement {
                 Log.d(TAG, "Richiesta " + HttpMethod.GET.name() + " eseguita");
                 serverListener.onSuccess();
             }
-        } catch (IOException | JSONException json) {
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
             Log.d(TAG, "Richiesta " + HttpMethod.GET.name() + " fallita");
             serverListener.onFailure();
             return null;
