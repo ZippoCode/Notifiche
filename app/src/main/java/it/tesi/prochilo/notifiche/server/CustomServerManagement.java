@@ -1,5 +1,6 @@
 package it.tesi.prochilo.notifiche.server;
 
+import android.os.AsyncTask;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -13,12 +14,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import it.tesi.prochilo.notifiche.util.IOUtil;
 import it.tesi.prochilo.notifiche.ServerListener;
 import it.tesi.prochilo.notifiche.Topic;
 
-public class CustomServerManagement {
+public class CustomServerManagement implements RestInterface {
 
     private enum HttpMethod {
         GET, POST, DELETE
@@ -37,6 +39,7 @@ public class CustomServerManagement {
     private String mUrlString = null;
     private final int connectionTimeout = 5000;
     private final String mToken;
+    private ServerListener serverListener;
 
 
     public CustomServerManagement(String urlString, final String token) {
@@ -52,8 +55,18 @@ public class CustomServerManagement {
      * @param serverListener Il listener per notificare se l'operazione è avvenuta con successo o meno
      * @return True se l'operazione è andata a buon fine, altrimenti false
      */
-    public boolean postRequest(List<String> topicsList, ServerListener serverListener) {
-        return postAndDeleteRequest(topicsList, HttpMethod.POST, serverListener);
+    @Override
+    public boolean postTopics(List<String> topicsList, ServerListener serverListener) {
+        PostAsyncTask task = new PostAsyncTask();
+        this.serverListener = serverListener;
+        boolean response = false;
+        task.execute(topicsList);
+        try {
+            response = task.get();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return response;
     }
 
     /**
@@ -62,7 +75,69 @@ public class CustomServerManagement {
      * @param serverListener Il listener per notificare se l'operazione è avvenuta con successo o meno
      * @return La lista dei Topic
      */
-    public List<Topic> getRequest(ServerListener serverListener) {
+    @Override
+    public List<Topic> getTopics(ServerListener serverListener) {
+        GetAsyncTask task = new GetAsyncTask();
+        this.serverListener = serverListener;
+        task.execute();
+        List<Topic> response = new LinkedList<>();
+        try {
+            response = task.get();
+        } catch (ExecutionException ee) {
+            ee.printStackTrace();
+        } catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
+        return response;
+    }
+
+    /**
+     * Elimina i topic descritti nella lista sul server
+     *
+     * @param topicsList     La lista di topic
+     * @param serverListener Il listener per notificare se l'operazione è avvenuta con successo o meno
+     * @return True se l'operazione è andata a buon fine, altrimenti false
+     */
+    @Override
+    public boolean deleteTopics(List<String> topicsList, ServerListener serverListener) {
+        DeleteAsyncTask task = new DeleteAsyncTask();
+        this.serverListener = serverListener;
+        boolean response = false;
+        task.execute(topicsList);
+        try {
+            response = task.get();
+        } catch (ExecutionException ee) {
+            ee.printStackTrace();
+        } catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
+        return response;
+    }
+
+
+    private class PostAsyncTask extends AsyncTask<List<String>, Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(List<String>... lists) {
+            return postAndDeleteRequest(lists[0], HttpMethod.POST, serverListener);
+        }
+    }
+
+    private class GetAsyncTask extends AsyncTask<Void, Void, List<Topic>> {
+        @Override
+        protected List<Topic> doInBackground(Void... voids) {
+            return getRequest(serverListener);
+        }
+    }
+
+    private class DeleteAsyncTask extends AsyncTask<List<String>, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(List<String>... lists) {
+            return postAndDeleteRequest(lists[0], HttpMethod.DELETE, serverListener);
+        }
+    }
+
+    private List<Topic> getRequest(ServerListener serverListener) {
         URL url;
         HttpURLConnection httpURLConnection = null;
         List<Topic> topicList = null;
@@ -102,19 +177,6 @@ public class CustomServerManagement {
         }
         return topicList;
     }
-
-    /**
-     * Elimina i topic descritti nella lista sul server
-     *
-     * @param topicsList     La lista di topic
-     * @param serverListener Il listener per notificare se l'operazione è avvenuta con successo o meno
-     * @return True se l'operazione è andata a buon fine, altrimenti false
-     */
-
-    public boolean deleteRequest(List<String> topicsList, ServerListener serverListener) {
-        return postAndDeleteRequest(topicsList, HttpMethod.DELETE, serverListener);
-    }
-
 
     /**
      * Esegue una richiesta HTTP al server di tipo POST o DELETE e ritorna
@@ -161,5 +223,4 @@ public class CustomServerManagement {
                 httpURLConnection.disconnect();
         }
     }
-
 }

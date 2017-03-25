@@ -4,15 +4,22 @@ import java.util.LinkedList;
 import java.util.List;
 
 import it.tesi.prochilo.notifiche.server.CustomFMS;
+import it.tesi.prochilo.notifiche.server.CustomServerManagement;
+import it.tesi.prochilo.notifiche.server.RestInterface;
 
 public class API implements InterfaceAPI {
 
     private static CustomFMS serverFirebase = null;
-    private static ServerAsyncTask serverCustom = null;
+    private static RestInterface serverCustom = null;
 
     public API(String url, String projectId, String token) {
-        serverCustom = new ServerAsyncTask(url, token);
+        serverCustom = new CustomServerManagement(url, token);
         serverFirebase = new CustomFMS(projectId, token);
+    }
+
+    public API(RestInterface serverCustom, CustomFMS serverFirebase) {
+        this.serverCustom = serverCustom;
+        this.serverFirebase = serverFirebase;
     }
 
     @Override
@@ -62,7 +69,7 @@ public class API implements InterfaceAPI {
 
     @Override
     public boolean subscribeToTopics(final List<String> topicsList, final ServerListener serverListener) {
-        return serverCustom.subscribeToTopics(topicsList, new ServerListener() {
+        return serverCustom.postTopics(topicsList, new ServerListener() {
             @Override
             public void onSuccess() {
                 serverFirebase.subscribeToTopics(topicsList, serverListener);
@@ -78,7 +85,7 @@ public class API implements InterfaceAPI {
 
     @Override
     public boolean unsubscribeFromTopics(final List<String> topicsList, final ServerListener serverListener) {
-        return serverCustom.unsubscribeFromTopics(topicsList, new ServerListener() {
+        return serverCustom.deleteTopics(topicsList, new ServerListener() {
             @Override
             public void onSuccess() {
                 serverFirebase.unsubscribeFromTopics(topicsList, serverListener);

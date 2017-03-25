@@ -8,9 +8,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import java.util.LinkedList;
-
-import it.tesi.prochilo.notifiche.server.CustomFMS;
 import it.tesi.prochilo.notifiche.ui.MainMenuActivity;
 import it.tesi.prochilo.notifiche.util.Login;
 
@@ -18,7 +15,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button loginButton;
     private EditText eMail, password;
-    private Toast toast;
+    private Toast success, failure;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +24,8 @@ public class MainActivity extends AppCompatActivity {
         loginButton = (Button) findViewById(R.id.login_button);
         eMail = (EditText) findViewById(R.id.editText_email);
         password = (EditText) findViewById(R.id.editText_password);
-        toast =  Toast.makeText(this, "Errore accesso", Toast.LENGTH_SHORT);
+        success = Toast.makeText(this, "Accesso eseguito", Toast.LENGTH_SHORT);
+        failure =  Toast.makeText(this, "Errore accesso", Toast.LENGTH_SHORT);
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -42,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
         login.getAPI().login(new ServerListener() {
             @Override
             public void onSuccess() {
+                success.show();
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
                 finish();
@@ -49,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure() {
-                toast.show();
+                failure.show();
             }
         });
 
