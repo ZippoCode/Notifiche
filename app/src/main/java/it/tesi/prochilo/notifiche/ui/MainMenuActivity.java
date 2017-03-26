@@ -14,10 +14,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.LinkedList;
 import java.util.List;
 
-import it.tesi.prochilo.notifiche.API;
 import it.tesi.prochilo.notifiche.MainActivity;
 import it.tesi.prochilo.notifiche.ServerListener;
 import it.tesi.prochilo.notifiche.R;
@@ -28,11 +26,12 @@ public class MainMenuActivity extends AppCompatActivity {
 
     private List<Topic> topicsList;
     private ListView mListView;
+    private Toast mSuccess;
     private BaseAdapter mAdapter;
     private ServerListener serverListener = new ServerListener() {
         @Override
         public void onSuccess() {
-            Log.d("CIAONE", "CIOEN");
+            mSuccess.show();
         }
 
         @Override
@@ -45,9 +44,8 @@ public class MainMenuActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.get_layout);
-        //------------------------------
+        mSuccess = Toast.makeText(this, "Logout eseguito", Toast.LENGTH_LONG);
         topicsList = Login.getAPI().getTopics(serverListener);
-        //------------------------------
         mListView = (ListView) findViewById(R.id.topic_list);
         mAdapter = getCustomAdapter();
         mListView.setAdapter(mAdapter);
