@@ -2,11 +2,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".MainMenuActivity">
+    tools:context=".ui.MainMenuActivity">
 
     <item
         android:id="@+id/subscribe_topics"
         android:checkable="true"
+        android:icon="@drawable/bookmarkplus_icon"
         android:orderInCategory="100"
         android:title="@string/subscribe_topics"
         app:showAsAction="always" />
@@ -14,6 +15,7 @@
     <item
         android:id="@+id/unsubscribe_topics"
         android:checkable="true"
+        android:icon="@drawable/bookmarkremove_icon"
         android:orderInCategory="100"
         android:title="@string/unsubscribe_topics"
         app:showAsAction="always" />

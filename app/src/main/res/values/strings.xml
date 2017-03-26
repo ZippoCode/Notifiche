@@ -4,5 +4,7 @@
     <!-- String from Main menu -->
     <string name="subscribe_topics">Sottoscrivi Topics</string>
     <string name="unsubscribe_topics">Disiscrivi Topics</string>
-    
+
+    <!-- String from OptionMenu -->
+    <string name="logout">Disconnetti</string>
 </resources>

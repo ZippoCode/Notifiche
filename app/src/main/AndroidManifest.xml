@@ -20,7 +20,7 @@
         </activity>
 
         <activity android:name=".ui.MainMenuActivity" />
-        <activity android:name=".ui.PostFragment" />
+        <activity android:name=".ui.PostActivity" />
         <activity android:name=".ui.DeleteActivity" />
 
         <service android:name=".server.CustomFMS">

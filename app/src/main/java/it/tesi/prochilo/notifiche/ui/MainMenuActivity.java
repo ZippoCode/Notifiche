@@ -2,7 +2,10 @@ package it.tesi.prochilo.notifiche.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -11,7 +14,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.List;
 
@@ -23,14 +25,13 @@ import it.tesi.prochilo.notifiche.util.Login;
 
 public class MainMenuActivity extends AppCompatActivity {
 
+    private static final String TAG = MainMenuActivity.class.getCanonicalName();
     private List<Topic> topicsList;
-    private ListView mListView;
-    private Toast mSuccess;
     private BaseAdapter mAdapter;
+
     private ServerListener serverListener = new ServerListener() {
         @Override
         public void onSuccess() {
-            mSuccess.show();
         }
 
         @Override
@@ -43,9 +44,18 @@ public class MainMenuActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.topics_list_layout);
-        mSuccess = Toast.makeText(this, "Logout eseguito", Toast.LENGTH_LONG);
         topicsList = Login.getAPI().getTopics(serverListener);
-        mListView = (ListView) findViewById(R.id.topic_list);
+        NavigationView mNavigationView = (NavigationView) findViewById(R.id.navigation_view);
+        mNavigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                Log.d(TAG, "Selected: "+item);
+                showActivity(item);
+                return false;
+            }
+        });
+
+        ListView mListView = (ListView) findViewById(R.id.topic_list);
         mAdapter = getCustomAdapter();
         mListView.setAdapter(mAdapter);
     }
@@ -67,14 +77,6 @@ public class MainMenuActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent;
         switch (item.getItemId()) {
-            case R.id.menuadd:
-                intent = new Intent(this, PostFragment.class);
-                startActivity(intent);
-                break;
-            case R.id.menudelete:
-                intent = new Intent(this, DeleteActivity.class);
-                startActivity(intent);
-                break;
             case R.id.logout:
                 Login.getAPI().logout(serverListener);
                 intent = new Intent(this, MainActivity.class);
@@ -87,7 +89,7 @@ public class MainMenuActivity extends AppCompatActivity {
     }
 
     private BaseAdapter getCustomAdapter() {
-        final BaseAdapter adapter = new BaseAdapter() {
+        return  new BaseAdapter() {
             @Override
             public int getCount() {
                 return topicsList.size();
@@ -113,7 +115,23 @@ public class MainMenuActivity extends AppCompatActivity {
                 return view;
             }
         };
-        return adapter;
+    }
+
+    private void showActivity(final MenuItem menuItem) {
+        Intent intent;
+        switch (menuItem.getItemId()) {
+            case R.id.subscribe_topics:
+                intent = new Intent(this, PostActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.unsubscribe_topics:
+                intent = new Intent(this, DeleteActivity.class);
+                startActivity(intent);
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
+
     }
 
 }

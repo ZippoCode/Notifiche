@@ -14,7 +14,7 @@ import it.tesi.prochilo.notifiche.R;
 import it.tesi.prochilo.notifiche.ServerListener;
 import it.tesi.prochilo.notifiche.util.Login;
 
-public class PostFragment extends AppCompatActivity {
+public class PostActivity extends AppCompatActivity {
 
     private EditText topic1, topic2;
     private Toast mSuccess, mFailure;

@@ -5,21 +5,9 @@
     tools:context=".ui.MainMenuActivity">
 
     <item
-        android:id="@+id/menuadd"
-        android:orderInCategory="100"
-        android:title="Subscribe topics"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/menudelete"
-        android:orderInCategory="100"
-        android:title="Unsubscribe topics"
-        app:showAsAction="never" />
-
-    <item
         android:id="@+id/logout"
         android:orderInCategory="100"
-        android:title="Logout"
+        android:title="@string/logout"
         app:showAsAction="never" />
 
 </menu>
