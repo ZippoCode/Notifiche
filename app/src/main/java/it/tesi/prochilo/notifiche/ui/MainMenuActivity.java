@@ -3,7 +3,6 @@ package it.tesi.prochilo.notifiche.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,14 +35,14 @@ public class MainMenuActivity extends AppCompatActivity {
 
         @Override
         public void onFailure() {
-            Log.d("CO", "NON RIUSCITA");
+
         }
     };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.get_layout);
+        setContentView(R.layout.topics_list_layout);
         mSuccess = Toast.makeText(this, "Logout eseguito", Toast.LENGTH_LONG);
         topicsList = Login.getAPI().getTopics(serverListener);
         mListView = (ListView) findViewById(R.id.topic_list);

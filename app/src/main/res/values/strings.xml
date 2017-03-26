@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Notifiche</string>
+
+    <!-- String from Main menu -->
+    <string name="subscribe_topics">Sottoscrivi Topics</string>
+    <string name="unsubscribe_topics">Disiscrivi Topics</string>
+    
 </resources>
